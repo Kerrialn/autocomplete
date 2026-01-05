@@ -5,6 +5,9 @@
 {% set min_chars = min_chars|default(1) %}
 {% set debounce = debounce|default(300) %}
 {% set limit = limit|default(10) %}
+{% set theme_name = theme ?? 'default' %}
+
+<link rel="stylesheet" href="{{ asset('styles/theme/' ~ theme_name ~ '.css') }}">
 
 <div class="autocomplete-wrapper"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"

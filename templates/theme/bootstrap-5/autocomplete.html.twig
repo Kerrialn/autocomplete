@@ -6,6 +6,9 @@
 {% set debounce = debounce|default(300) %}
 {% set limit = limit|default(10) %}
 {% set input_class = (attr.class|default('') ~ ' form-control')|trim %}
+{% set theme_name = theme ?? 'default' %}
+
+<link rel="stylesheet" href="{{ asset('styles/theme/' ~ theme_name ~ '.css') }}">
 
 <div class="position-relative"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
