@@ -2,9 +2,6 @@
 
 ## Overview
 
-## Dev
-- NPM watch is running in the background
-
 A highly customisable Autocomplete bundle for Symfony that prioritises server-side rendering and flexibility.
 
 ## Key Features
@@ -40,11 +37,11 @@ This approach allows projects to match their existing design systems without fig
 ## Architecture
 
 - **Backend**: Symfony bundle with Twig templates
-- **Frontend**: Stimulus controllers for interactivity
+- **Frontend**: Stimulus controllers for interactivity (source ES modules, no build step)
 - **Rendering**: Server-side via Twig (not JavaScript template strings)
 - **Theme System**: TemplateResolver resolves theme names to template paths
 - **Chip Provider Interface**: Providers must implement `get(id)` for server-side chip rendering
-- **Webpack Build System**: Assets compiled via Webpack Encore
+- **Asset Delivery**: Uses Symfony's Asset Mapper (no build step required)
 
 ## Implementation Status
 
@@ -101,14 +98,11 @@ All templates are fully customizable by overriding in the host application.
 
 #### Frontend (JavaScript/CSS)
 
-1. **Build System**
-   - `package.json` - Webpack Encore dependencies and build scripts
-   - `webpack.config.js` - Webpack configuration for compiling assets
-   - `assets/controllers/ssr_autocomplete_controller.js` - Source JavaScript
-   - `assets/styles/autocomplete.css` - **Unified CSS file with all themes**
+1. **Asset Files** (No build step required)
+   - `assets/controllers/ssr_autocomplete_controller.js` - Stimulus controller (ES module)
+   - `assets/styles/autocomplete.css` - **Unified CSS file with all themes (~11KB)**
    - `assets/styles/theme/*.css` - Original theme CSS files (kept for reference)
-   - `public/ssr_autocomplete_controller.js` - Compiled JavaScript (minified for production)
-   - `public/autocomplete.css` - **Compiled unified CSS file (~11KB)**
+   - Delivered via Symfony's Asset Mapper - no compilation needed
 
 2. **Stimulus Controller Features**
    - **Server-side chip rendering via AJAX**: Chips fetched from backend
@@ -128,10 +122,8 @@ All templates are fully customizable by overriding in the host application.
    - **Theme scoping**: Each theme scoped via `[data-autocomplete-theme="..."]` selector
    - **Instant theme switching**: Just change data attribute value, no CSS file reload needed
    - Cards theme includes metadata display (email, domain, role, avatar)
-   - Built via Webpack Encore to `public/autocomplete.css`
    - Clean, modern defaults with hover/focus states
-   - **Easy customization**: Add CSS scoped to custom theme names
-   - **No webpack required for custom CSS**: Users can add custom theme CSS to their own assets
+   - **Easy customization**: Add CSS scoped to custom theme names in your app's CSS
 
 #### Documentation
 

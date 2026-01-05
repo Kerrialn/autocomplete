@@ -434,11 +434,39 @@
     gap: 0.5rem;
 }
 
+[data-autocomplete-theme="cards"] .autocomplete-chip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    flex: 1;
+    min-width: 0;
+}
+
 [data-autocomplete-theme="cards"] .autocomplete-chip-label {
     color: #111827;
     font-weight: 600;
     font-size: 0.9375rem;
     line-height: 1.25rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-age {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
 }
 
 [data-autocomplete-theme="cards"] .autocomplete-chip-meta {
