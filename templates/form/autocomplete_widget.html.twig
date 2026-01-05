@@ -1,0 +1,29 @@
+{% block autocomplete_widget %}
+    {% set theme = theme|default('default') %}
+    {% set provider = provider|default('') %}
+    {% set multiple = multiple|default(false) %}
+    {% set placeholder = placeholder|default('Search...') %}
+    {% set min_chars = min_chars|default(1) %}
+    {% set debounce = debounce|default(300) %}
+    {% set limit = limit|default(10) %}
+    {% set attr = attr|default({}) %}
+    {% set value_for_widget = (selected_items is defined) ? selected_items : value %}
+
+    {# If provider isn't set, don't break the whole form: fallback to the normal widget #}
+    {% if provider is empty %}
+        {{ block('choice_widget') }}
+    {% else %}
+        {% include '@Autocomplete/theme/' ~ theme ~ '/autocomplete.html.twig' with {
+            name: full_name,
+            value: value_for_widget,
+            provider: provider,
+            multiple: multiple,
+            placeholder: placeholder,
+            min_chars: min_chars,
+            debounce: debounce,
+            limit: limit,
+            attr: attr,
+            theme: theme
+        } %}
+    {% endif %}
+{% endblock %}

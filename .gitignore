@@ -1,0 +1,9 @@
+/var/
+/vendor
+/node_modules
+/public/*.js
+/public/*.css
+/public/*.map
+/public/theme/*.js
+/public/theme/*.css
+/public/theme/*.map

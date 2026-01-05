@@ -1,0 +1,15 @@
+{% if results is empty %}
+    <div class="px-3 py-2 text-muted small">No results</div>
+{% else %}
+    {% for item in results %}
+        <a type="button"
+                class="dropdown-item autocomplete-option"
+                data-autocomplete-option-value="{{ item.id }}"
+                data-autocomplete-option-label="{{ item.label }}"
+                {% if item.meta is defined %}
+                    data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
+                {% endif %}>
+            {{ item.label }}
+        </a>
+    {% endfor %}
+{% endif %}

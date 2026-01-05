@@ -1,0 +1,49 @@
+{
+  "name": "kerrialnewham/autocomplete",
+  "description" : "",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Kerrialnewham\\Autocomplete\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "App\\": "test-app/src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "kez",
+      "email": "kerrialbeckettnewham@gmail.com"
+    }
+  ],
+  "keywords": ["symfony-bundle", "symfony-ux", "stimulus", "autocomplete"],
+  "require": {
+    "php": "^8.2",
+    "symfony/framework-bundle": "^7.0|^8.0",
+    "symfony/stimulus-bundle": "^2.9",
+    "symfony/twig-bundle": "^7.0|^8.0",
+    "symfony/asset-mapper": "^8.0",
+    "symfony/asset": "^8.0",
+    "symfony/twig-pack": "^1.0",
+    "symfony/runtime": "^7.0|^8.0",
+    "symfony/form": "^7.0|^8.0",
+    "symfony/security-csrf": "^8.0",
+    "symfony/intl": "^8.0"
+  },
+  "suggest": {
+    "symfony/asset-mapper": "To expose the JS/CSS assets via AssetMapper in Symfony 7+"
+  },
+  "extra": {
+    "symfony": {
+      "bundle-class": "Kerrialnewham\\Autocomplete\\AutocompleteBundle"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "symfony/runtime": true
+    }
+  }
+}

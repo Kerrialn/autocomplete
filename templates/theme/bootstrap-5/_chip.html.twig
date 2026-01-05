@@ -1,0 +1,17 @@
+<span class="badge autocomplete-chip"
+      data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
+      data-autocomplete-chip-value="{{ item.id }}">
+    <span class="autocomplete-chip-label">{{ item.label }}</span>
+
+    <button type="button"
+            class="autocomplete-chip-remove"
+            aria-label="Remove {{ item.label }}"
+            data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
+        &times;
+    </button>
+
+    <input type="hidden"
+           name="{{ name }}[]"
+           value="{{ item.id }}"
+           data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput">
+</span>

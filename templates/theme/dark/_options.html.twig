@@ -1,0 +1,19 @@
+{% if results is empty %}
+    <div class="autocomplete-empty">No results</div>
+{% else %}
+    <ul class="autocomplete-list" role="listbox" aria-label="Autocomplete results">
+        {% for item in results %}
+            <li class="autocomplete-option"
+                role="option"
+                tabindex="-1"
+                data-autocomplete-option-value="{{ item.id }}"
+                data-autocomplete-option-label="{{ item.label }}"
+                    {% if item.meta is defined %}
+                        data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
+                    {% endif %}
+            >
+                {{ item.label }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

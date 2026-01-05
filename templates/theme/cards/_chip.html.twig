@@ -1,0 +1,54 @@
+<div class="autocomplete-chip"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
+     data-autocomplete-chip-value="{{ item.id }}">
+
+    <button type="button"
+            class="autocomplete-chip-remove"
+            aria-label="Remove {{ item.label }}"
+            data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
+        &times;
+    </button>
+
+    <div class="autocomplete-chip-content">
+        <div class="autocomplete-chip-header">
+            {% if item.meta is defined and item.meta and item.meta.avatar is defined %}
+                <img
+                        class="autocomplete-chip-avatar"
+                        src="{{ item.meta.avatar }}"
+                        alt=""
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                >
+            {% endif %}
+
+            <div class="autocomplete-chip-title">
+                <span class="autocomplete-chip-label">
+                    {{ item.meta.name|default(item.label) }}
+                </span>
+
+                {% if item.meta is defined and item.meta and item.meta.age is defined %}
+                    <span class="autocomplete-chip-age">
+                        {{ item.meta.age }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if item.meta is defined and item.meta %}
+            <div class="autocomplete-chip-meta">
+                {% if item.meta.email is defined %}
+                    <div class="autocomplete-chip-meta-row">
+                        <span class="autocomplete-chip-meta-label">Email:</span>
+                        <span class="autocomplete-chip-meta-value">{{ item.meta.email }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <input type="hidden"
+           name="{{ name }}[]"
+           value="{{ item.id }}"
+           data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput">
+</div>

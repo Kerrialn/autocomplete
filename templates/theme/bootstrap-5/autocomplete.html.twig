@@ -1,0 +1,70 @@
+{% set attr = attr|default({}) %}
+{% set provider = provider ?? 'MISSING_PROVIDER' %}
+{% set multiple = multiple|default(false) %}
+{% set placeholder = placeholder|default('Search...') %}
+{% set min_chars = min_chars|default(1) %}
+{% set debounce = debounce|default(300) %}
+{% set limit = limit|default(10) %}
+{% set input_class = (attr.class|default('') ~ ' form-control')|trim %}
+
+<div class="position-relative"
+     data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme ?? 'default' }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-multiple-value="{{ multiple ? 'true' : 'false' }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-min-chars-value="{{ min_chars }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-debounce-value="{{ debounce }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-limit-value="{{ limit }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ path('autocomplete_search', { provider: provider, theme: theme ?? 'default' }) }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
+
+    {% if multiple %}
+        <div class="autocomplete-chips"
+             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
+            {% if value is defined and value is iterable %}
+                {% for item in value %}
+                    {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
+                        item: item,
+                        name: name
+                    } %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="position-relative">
+        <input type="text"
+               class="{{ input_class }}"
+               placeholder="{{ placeholder }}"
+               autocomplete="off"
+               data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
+               data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
+        {% for attrName, attrValue in attr %}
+        {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
+        {% endfor %}>
+
+        {# Loading spinner (Bootstrap) #}
+        <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+              data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading"
+              style="display: none;"
+              aria-hidden="true">
+            <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+        </span>
+
+        {# Dropdown menu (Bootstrap) #}
+        <div class="dropdown-menu w-100 shadow autocomplete-dropdown bg-white"
+             data-kerrialnewham--autocomplete--ssr-autocomplete-target="dropdown"
+             role="listbox"
+             style="display: none; max-height: 300px; overflow-y: auto;">
+            <div class="list-group" data-kerrialnewham--autocomplete--ssr-autocomplete-target="optionsContainer">
+            </div>
+        </div>
+    </div>
+
+    {% if not multiple and value is defined %}
+        <input type="hidden"
+               name="{{ name }}"
+               value="{{ value.id|default('') }}"
+               data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput">
+    {% endif %}
+</div>
