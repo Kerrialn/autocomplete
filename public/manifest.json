@@ -1,9 +1,6 @@
 {
   "bundles/autocomplete/ssr_autocomplete_controller.js": "/bundles/autocomplete/ssr_autocomplete_controller.js",
-  "bundles/autocomplete/theme/default.css": "/bundles/autocomplete/theme/default.css",
-  "bundles/autocomplete/theme/bootstrap-5.css": "/bundles/autocomplete/theme/bootstrap-5.css",
-  "bundles/autocomplete/theme/dark.css": "/bundles/autocomplete/theme/dark.css",
-  "bundles/autocomplete/theme/cards.css": "/bundles/autocomplete/theme/cards.css",
+  "bundles/autocomplete/autocomplete.css": "/bundles/autocomplete/autocomplete.css",
   "bundles/autocomplete/runtime.js": "/bundles/autocomplete/runtime.js",
   "bundles/autocomplete/243.js": "/bundles/autocomplete/243.js"
 }

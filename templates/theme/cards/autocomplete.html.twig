@@ -7,9 +7,8 @@
 {% set limit = limit|default(10) %}
 {% set theme_name = theme ?? 'default' %}
 
-<link rel="stylesheet" href="{{ asset('styles/theme/' ~ theme_name ~ '.css') }}">
-
 <div class="autocomplete-wrapper"
+     data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
      data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme ?? 'default' }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"

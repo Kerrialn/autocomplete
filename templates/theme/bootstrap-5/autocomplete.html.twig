@@ -8,9 +8,8 @@
 {% set input_class = (attr.class|default('') ~ ' form-control')|trim %}
 {% set theme_name = theme ?? 'default' %}
 
-<link rel="stylesheet" href="{{ asset('styles/theme/' ~ theme_name ~ '.css') }}">
-
 <div class="position-relative"
+     data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
      data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme ?? 'default' }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"

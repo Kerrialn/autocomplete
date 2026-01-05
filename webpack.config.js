@@ -14,11 +14,8 @@ Encore
     // Entries
     .addEntry('ssr_autocomplete_controller', './assets/controllers/ssr_autocomplete_controller.js')
 
-    // CSS entries for each theme
-    .addStyleEntry('theme/default', './assets/styles/theme/default.css')
-    .addStyleEntry('theme/bootstrap-5', './assets/styles/theme/bootstrap-5.css')
-    .addStyleEntry('theme/dark', './assets/styles/theme/dark.css')
-    .addStyleEntry('theme/cards', './assets/styles/theme/cards.css')
+    // Unified CSS with all themes
+    .addStyleEntry('autocomplete', './assets/styles/autocomplete.css')
 
     // Features
     .splitEntryChunks()

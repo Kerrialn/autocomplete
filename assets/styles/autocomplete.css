@@ -1,0 +1,631 @@
+/* =============================================================================
+   Symfony Autocomplete Bundle - Unified CSS
+
+   All themes are combined in this single file.
+   Theme switching is controlled by the data-autocomplete-theme attribute
+   on the .autocomplete-wrapper element.
+
+   Available themes:
+   - default (unscoped, fallback)
+   - dark ([data-autocomplete-theme="dark"])
+   - cards ([data-autocomplete-theme="cards"])
+   - bootstrap-5 ([data-autocomplete-theme="bootstrap-5"])
+   ============================================================================= */
+
+/* =============================================================================
+   DEFAULT THEME (Base/Fallback)
+   ============================================================================= */
+
+/* Autocomplete Wrapper */
+.autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Chips Container */
+.autocomplete-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.autocomplete-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    padding-right: 0.625rem;
+    background-color: #e5e7eb;
+    border: 1px solid #d1d5db;
+    border-radius: 9999px;
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+.autocomplete-chip-label {
+    color: #374151;
+    font-weight: 500;
+}
+
+.autocomplete-chip-remove {
+    background-color: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.25rem;
+    margin: 0;
+    margin-left: 0.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+}
+
+.autocomplete-chip-remove:hover {
+    background-color: #d1d5db;
+    color: #1f2937;
+}
+
+.autocomplete-chip-remove:focus {
+    outline: none;
+    background-color: #d1d5db;
+    color: #1f2937;
+}
+
+/* Input Wrapper */
+.autocomplete-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.autocomplete-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.autocomplete-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.autocomplete-input::placeholder {
+    color: #9ca3af;
+}
+
+/* Loading Indicator */
+.autocomplete-loading {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Dropdown */
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Options */
+.autocomplete-options {
+    padding: 0;
+}
+
+.autocomplete-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.autocomplete-option {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background-color 0.15s ease-in-out;
+    color: #212529;
+    font-size: 1rem;
+    line-height: 1.5;
+    text-align: left;
+    background-color: #ffffff;
+    border: none;
+}
+
+.autocomplete-option:hover,
+.autocomplete-option-focused {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-option:active {
+    background-color: #e9ecef;
+}
+
+.autocomplete-option-label {
+    color: #1f2937;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+/* No Results */
+.autocomplete-no-results {
+    padding: 1rem 0.75rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Scrollbar Styling */
+.autocomplete-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0.375rem;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 0.375rem;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* =============================================================================
+   DARK THEME
+   ============================================================================= */
+
+[data-autocomplete-theme="dark"] .autocomplete-chips {
+    gap: 0.625rem;
+    margin-bottom: 0.875rem;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-chip {
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    padding-right: 0.5rem;
+    background-color: #1e293b;
+    border: none;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: background-color 0.15s ease;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-chip:hover {
+    background-color: #334155;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-chip-label {
+    color: #e2e8f0;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-chip-remove {
+    background-color: #334155;
+    color: #94a3b8;
+    font-size: 1.125rem;
+    padding: 0;
+    margin-left: 0.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+    display: flex;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-chip-remove:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-chip-remove:focus {
+    outline: 2px solid #64748b;
+    outline-offset: 2px;
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-input {
+    padding: 0.625rem 1rem;
+    border: 2px solid #334155;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    background-color: #1e293b;
+    color: #e2e8f0;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-input:hover {
+    border-color: #475569;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-input:focus {
+    border-color: #64748b;
+    box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.2);
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-input::placeholder {
+    color: #64748b;
+    font-weight: 400;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-loading {
+    right: 1rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-dropdown {
+    margin-top: 0.5rem;
+    background-color: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    max-height: 320px;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-options {
+    padding: 0.5rem;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-option {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    color: #cbd5e1;
+    font-size: 0.9375rem;
+    background-color: transparent;
+    border: 2px solid transparent;
+    margin-bottom: 0.25rem;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-option:last-child {
+    margin-bottom: 0;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-option:hover {
+    background-color: #334155;
+    border-color: #475569;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-option-focused {
+    background-color: #334155;
+    border-color: #64748b;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-option:active {
+    background-color: #475569;
+    border-color: #64748b;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-option-label {
+    color: #e2e8f0;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-no-results {
+    padding: 2rem 1rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-dropdown::-webkit-scrollbar {
+    width: 10px;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0.75rem;
+    margin: 0.5rem 0;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #475569, #334155);
+    border-radius: 0.75rem;
+    border: 2px solid #1e293b;
+}
+
+[data-autocomplete-theme="dark"] .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #64748b, #475569);
+}
+
+/* =============================================================================
+   CARDS THEME
+   ============================================================================= */
+
+[data-autocomplete-theme="cards"] .autocomplete-chips {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    padding-top: 1.25rem;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    box-sizing: border-box;
+    flex: 0 0 calc((100% - (2 * 0.75rem)) / 3);
+    max-width: calc((100% - (2 * 0.75rem)) / 3);
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    border-radius: 0.5rem;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-remove:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-remove:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-content {
+    width: 100%;
+    padding-right: 2.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-label {
+    color: #111827;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.25rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-meta {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    display: grid;
+    gap: 0.25rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-meta-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem;
+    align-items: baseline;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-meta-label {
+    font-weight: 600;
+    color: #4b5563;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-meta-value {
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-meta-item {
+    display: inline-block;
+    margin-right: 0.75rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-chip-meta-item:last-child {
+    margin-right: 0;
+}
+
+@media (max-width: 900px) {
+    [data-autocomplete-theme="cards"] .autocomplete-chip {
+        flex: 0 0 calc((100% - 0.75rem) / 2);
+        max-width: calc((100% - 0.75rem) / 2);
+    }
+}
+
+@media (max-width: 520px) {
+    [data-autocomplete-theme="cards"] .autocomplete-chip {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-input {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-input:hover {
+    border-color: #d1d5db;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-loading {
+    right: 1rem;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-dropdown {
+    margin-top: 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-height: 400px;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-options {
+    width: 100%;
+    padding: 0.5rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    gap: 0.5rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-list > .autocomplete-option {
+    box-sizing: border-box;
+    flex: 0 0 calc((100% - (2 * 0.5rem)) / 3);
+    max-width: calc((100% - (2 * 0.5rem)) / 3);
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    color: #374151;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    text-align: left;
+    background-color: transparent;
+    border: 1px solid transparent;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    [data-autocomplete-theme="cards"] .autocomplete-list > .autocomplete-option {
+        flex: 0 0 calc((100% - 0.5rem) / 2);
+        max-width: calc((100% - 0.5rem) / 2);
+    }
+}
+
+@media (max-width: 520px) {
+    [data-autocomplete-theme="cards"] .autocomplete-list > .autocomplete-option {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-list > .autocomplete-option:hover {
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-list > .autocomplete-option.autocomplete-option-focused {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-list > .autocomplete-option:active {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-option-label {
+    color: #111827;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-option-meta {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-empty,
+[data-autocomplete-theme="cards"] .autocomplete-no-results {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-dropdown::-webkit-scrollbar {
+    width: 10px;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0.75rem;
+    margin: 0.5rem 0;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 0.75rem;
+    border: 2px solid #ffffff;
+}
+
+[data-autocomplete-theme="cards"] .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}

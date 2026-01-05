@@ -40,12 +40,7 @@ return static function (ContainerConfigurator $container): void {
         ->autoconfigure()
         ->tag('autocomplete.provider');
 
-
-    $services->set(TemplateResolver::class)
-        ->args([
-            '%autocomplete.default_theme%',
-            '%autocomplete.allowed_themes%',
-        ]);
+    $services->set(TemplateResolver::class);
 
     $services->set(AutocompleteFormTypeExtension::class)
         ->autowire()

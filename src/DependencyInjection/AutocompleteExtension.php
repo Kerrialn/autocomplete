@@ -21,10 +21,6 @@ final class AutocompleteExtension extends Extension
         );
         $loader->load('services.php');
 
-        // Set configuration parameters
-        $container->setParameter('autocomplete.default_theme', $config['theme']);
-        $container->setParameter('autocomplete.allowed_themes', $config['allowed_themes']);
-
         // Register _instanceof configuration to auto-tag all providers globally
         $container->registerForAutoconfiguration(AutocompleteProviderInterface::class)
             ->addTag('autocomplete.provider');

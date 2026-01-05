@@ -63,7 +63,13 @@ twig:
         - '@Autocomplete/form/autocomplete_widget.html.twig'
 ```
 
-3. Use it in your form:
+3. Include the CSS in your base template (e.g., `templates/base.html.twig`):
+
+```twig
+<link rel="stylesheet" href="{{ asset('bundles/autocomplete/autocomplete.css') }}">
+```
+
+4. Use it in your form:
 
 ```php
 use Kerrialnewham\Autocomplete\Form\AutocompleteType;
@@ -284,24 +290,83 @@ Override the entire widget template for complete control.
 
 ### Customize Styling
 
-You can override the default styles by creating your own CSS:
+#### Built-in Themes
+
+The bundle includes four built-in themes, all packaged in a single CSS file:
+
+- **default** - Clean, modern design with pill-shaped chips
+- **dark** - Dark mode variant with muted colors
+- **cards** - Card-style layout with metadata display (email, domain, role, avatar)
+- **bootstrap-5** - Bootstrap 5 compatible styling
+
+To use a theme, specify it in your form:
+
+```php
+$builder->add('country', AutocompleteType::class, [
+    'provider' => 'countries',
+    'theme' => 'dark', // or 'cards', 'bootstrap-5'
+]);
+```
+
+Theme switching is instant - it's controlled by a `data-autocomplete-theme` attribute on the wrapper element.
+
+#### Override Default Theme Styles
+
+Add custom CSS in your own stylesheet. Use data attribute selectors to target specific themes:
 
 ```css
-/* Custom styling */
-.autocomplete-input {
+/* Override default theme */
+[data-autocomplete-theme="default"] .autocomplete-input {
     border: 2px solid #4f46e5;
     border-radius: 8px;
 }
 
+/* Override dark theme */
+[data-autocomplete-theme="dark"] .autocomplete-chip {
+    background-color: #7c3aed;
+}
+
+/* Override all themes */
 .autocomplete-option:hover {
     background-color: #eef2ff;
 }
+```
 
-.autocomplete-chip {
-    background-color: #4f46e5;
+#### Create a Custom Theme
+
+To create a completely custom theme, add CSS scoped to your theme name:
+
+```css
+/* My custom theme */
+[data-autocomplete-theme="my-custom"] .autocomplete-wrapper {
+    font-family: 'Inter', sans-serif;
+}
+
+[data-autocomplete-theme="my-custom"] .autocomplete-input {
+    background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+}
+
+[data-autocomplete-theme="my-custom"] .autocomplete-chip {
+    background-color: #667eea;
     color: white;
 }
 ```
+
+Then use it in your form:
+
+```php
+$builder->add('country', AutocompleteType::class, [
+    'provider' => 'countries',
+    'theme' => 'my-custom',
+]);
+```
+
+#### Disable Bundle CSS
+
+If you want complete control, don't include the bundle's CSS file and write your own from scratch. The bundle will still function - you'll just need to provide your own styles for the HTML structure.
 
 ### Stimulus Controller Events
 

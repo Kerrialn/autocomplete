@@ -72,9 +72,10 @@ This approach allows projects to match their existing design systems without fig
      - `/_autocomplete/{provider}/chip` - Server-side chip rendering endpoint
 
 4. **Theme System**
-   - `src/Theme/TemplateResolver.php` - Resolves and validates theme names to template paths
-   - Supports: default, dark, cards, bootstrap-5
-   - Configurable via `config/packages/autocomplete.php`
+   - `src/Theme/TemplateResolver.php` - Validates theme names and resolves to template paths
+   - Built-in themes: default, dark, cards, bootstrap-5
+   - No configuration required - specify theme per form field
+   - Validates theme names to prevent path traversal attacks
 
 5. **Form Integration**
    - `src/Form/Type/AutocompleteType.php` - Symfony FormType
@@ -104,9 +105,10 @@ All templates are fully customizable by overriding in the host application.
    - `package.json` - Webpack Encore dependencies and build scripts
    - `webpack.config.js` - Webpack configuration for compiling assets
    - `assets/controllers/ssr_autocomplete_controller.js` - Source JavaScript
-   - `assets/styles/theme/*.css` - Theme CSS source files
+   - `assets/styles/autocomplete.css` - **Unified CSS file with all themes**
+   - `assets/styles/theme/*.css` - Original theme CSS files (kept for reference)
    - `public/ssr_autocomplete_controller.js` - Compiled JavaScript (minified for production)
-   - `public/theme/*.css` - Compiled theme CSS files
+   - `public/autocomplete.css` - **Compiled unified CSS file (~11KB)**
 
 2. **Stimulus Controller Features**
    - **Server-side chip rendering via AJAX**: Chips fetched from backend
@@ -120,12 +122,16 @@ All templates are fully customizable by overriding in the host application.
    - Loading states
    - Custom events dispatching (`autocomplete:select`, `autocomplete:remove`)
 
-3. **Styling (Theme System)**
-   - Four complete themes: default, dark, cards, bootstrap-5
+3. **Styling (Theme System with Data Attributes)**
+   - **Single CSS file** containing all themes (~11KB)
+   - **Four complete themes**: default, dark, cards, bootstrap-5
+   - **Theme scoping**: Each theme scoped via `[data-autocomplete-theme="..."]` selector
+   - **Instant theme switching**: Just change data attribute value, no CSS file reload needed
    - Cards theme includes metadata display (email, domain, role, avatar)
-   - Built via Webpack Encore to `public/theme/*.css`
+   - Built via Webpack Encore to `public/autocomplete.css`
    - Clean, modern defaults with hover/focus states
-   - Fully customizable via CSS overrides or custom themes
+   - **Easy customization**: Add CSS scoped to custom theme names
+   - **No webpack required for custom CSS**: Users can add custom theme CSS to their own assets
 
 #### Documentation
 
@@ -211,26 +217,22 @@ interface ChipProviderInterface {
 
 Themes control the visual appearance and HTML structure of all autocomplete components.
 
-#### Configuration
+#### How It Works
 
-Set default theme in `config/packages/autocomplete.php`:
+Themes are specified per form field (no global configuration needed):
 
 ```php
-<?php
-
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-
-return static function (ContainerConfigurator $container): void {
-    $container->extension('autocomplete', [
-        'theme' => 'cards',
-        'allowed_themes' => ['default', 'dark', 'cards', 'bootstrap-5'],
-    ]);
-};
+$builder->add('country', AutocompleteType::class, [
+    'provider' => 'countries',
+    'theme' => 'dark', // Optional, defaults to 'default'
+]);
 ```
+
+The TemplateResolver validates theme names to prevent path traversal attacks and defaults to 'default' for invalid/missing themes.
 
 #### Theme Resolution Flow
 
-1. **Form type** sets theme in view vars (using default theme from config)
+1. **Form type** sets theme in view vars (defaults to 'default' if not specified)
 2. **Widget template** includes theme-specific main template
 3. **Main template** passes theme parameter in search URL
 4. **JavaScript controller** carries theme to chip endpoint via `buildChipUrl()`
@@ -245,20 +247,55 @@ return static function (ContainerConfigurator $container): void {
 
 #### Creating Custom Themes
 
+**Option 1: CSS-Only Custom Theme (Recommended)**
+
+Simply add CSS scoped to your custom theme name. No webpack, no bundle rebuild required:
+
+```css
+/* In your app's CSS file */
+[data-autocomplete-theme="my-custom"] .autocomplete-wrapper {
+    font-family: 'Inter', sans-serif;
+}
+
+[data-autocomplete-theme="my-custom"] .autocomplete-input {
+    background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+[data-autocomplete-theme="my-custom"] .autocomplete-chip {
+    background-color: #667eea;
+    color: white;
+}
+```
+
+Then use it:
+```php
+$builder->add('country', AutocompleteType::class, [
+    'provider' => 'countries',
+    'theme' => 'my-custom',
+]);
+```
+
+**Option 2: Full Custom Theme (Templates + CSS)**
+
+For completely custom HTML structure:
+
 1. Create theme directory: `templates/theme/my-theme/`
 2. Add three templates:
-   - `autocomplete.html.twig` - Main widget
+   - `autocomplete.html.twig` - Main widget (must include `data-autocomplete-theme="{{ theme }}"` attribute)
    - `_options.html.twig` - Dropdown results
    - `_chip.html.twig` - Selected item chip
-3. Create CSS file: `assets/styles/theme/my-theme.css`
-4. Add entry to `webpack.config.js`:
-   ```js
-   .addStyleEntry('theme/my-theme', './assets/styles/theme/my-theme.css')
+3. Add CSS scoped to your theme in your app's CSS file:
+   ```css
+   [data-autocomplete-theme="my-theme"] .autocomplete-wrapper { /* styles */ }
    ```
-5. Build assets: `npm run build`
-6. Add to allowed themes in config:
+4. Use it in your form:
    ```php
-   'allowed_themes' => ['default', 'dark', 'cards', 'bootstrap-5', 'my-theme'],
+   $builder->add('field', AutocompleteType::class, [
+       'provider' => 'my-provider',
+       'theme' => 'my-theme',
+   ]);
    ```
 
 ### Customization Points

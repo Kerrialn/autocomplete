@@ -7,36 +7,12 @@
         "/bundles/autocomplete/ssr_autocomplete_controller.js"
       ]
     },
-    "theme/default": {
+    "autocomplete": {
       "js": [
         "/bundles/autocomplete/runtime.js"
       ],
       "css": [
-        "/bundles/autocomplete/theme/default.css"
-      ]
-    },
-    "theme/bootstrap-5": {
-      "js": [
-        "/bundles/autocomplete/runtime.js"
-      ],
-      "css": [
-        "/bundles/autocomplete/theme/bootstrap-5.css"
-      ]
-    },
-    "theme/dark": {
-      "js": [
-        "/bundles/autocomplete/runtime.js"
-      ],
-      "css": [
-        "/bundles/autocomplete/theme/dark.css"
-      ]
-    },
-    "theme/cards": {
-      "js": [
-        "/bundles/autocomplete/runtime.js"
-      ],
-      "css": [
-        "/bundles/autocomplete/theme/cards.css"
+        "/bundles/autocomplete/autocomplete.css"
       ]
     }
   }
