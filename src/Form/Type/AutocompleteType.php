@@ -24,7 +24,7 @@ class AutocompleteType extends AbstractType
         $view->vars['debounce'] = $options['debounce'];
         $view->vars['limit'] = $options['limit'];
         $view->vars['attr'] = array_merge($view->vars['attr'], $options['attr']);
-        $view->vars['theme'] = $this->templates->theme(null);
+        $view->vars['theme'] = $this->templates->theme($options['theme']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -37,6 +37,7 @@ class AutocompleteType extends AbstractType
             'debounce' => 300,
             'limit' => 10,
             'attr' => [],
+            'theme' => null,
             'compound' => false,
         ]);
 
@@ -47,6 +48,7 @@ class AutocompleteType extends AbstractType
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
         $resolver->setAllowedTypes('attr', 'array');
+        $resolver->setAllowedTypes('theme', ['string', 'null']);
     }
 
     public function getBlockPrefix(): string

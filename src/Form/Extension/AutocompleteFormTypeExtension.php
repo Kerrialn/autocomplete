@@ -33,6 +33,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             'min_chars' => 1,
             'debounce' => 300,
             'limit' => 10,
+            'theme' => null,
         ]);
 
         $resolver->setAllowedTypes('autocomplete', 'bool');
@@ -41,6 +42,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('min_chars', 'int');
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
+        $resolver->setAllowedTypes('theme', ['null', 'string']);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
@@ -80,7 +82,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $view->vars['min_chars'] = $options['min_chars'];
         $view->vars['debounce'] = $options['debounce'];
         $view->vars['limit'] = $options['limit'];
-        $view->vars['theme'] = $this->templates->theme(null);
+        $view->vars['theme'] = $this->templates->theme($options['theme']);
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
