@@ -4,7 +4,9 @@
       "Bash(cat:*)",
       "Bash(php debug-container.php:*)",
       "Bash(curl:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(bin/console debug:asset-map:*)",
+      "Bash(bin/console debug:container:*)"
     ]
   }
 }

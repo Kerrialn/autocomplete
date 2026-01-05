@@ -6,7 +6,7 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
 
 Encore
     // Directory where compiled assets will be stored
-    .setOutputPath('Resources/public/')
+    .setOutputPath('public/')
     // Public path used by the web server to access the output path
     .setPublicPath('/bundles/autocomplete')
     .setManifestKeyPrefix('bundles/autocomplete')

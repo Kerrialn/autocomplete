@@ -3,7 +3,7 @@
     "ssr_autocomplete_controller": {
       "js": [
         "/bundles/autocomplete/runtime.js",
-        "/bundles/autocomplete/390.js",
+        "/bundles/autocomplete/243.js",
         "/bundles/autocomplete/ssr_autocomplete_controller.js"
       ]
     },

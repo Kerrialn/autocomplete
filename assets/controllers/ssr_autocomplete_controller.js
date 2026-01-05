@@ -271,7 +271,7 @@ export default class extends Controller {
 
         return chipUrl.toString();
     }
-w
+
     async fetchChipHtml(id) {
         const url = this.buildChipUrl(id);
         console.log('[autocomplete] chip url:', url);
