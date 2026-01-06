@@ -61,11 +61,19 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         // Add EntityToIdentifierTransformer for EntityType with autocomplete
         if ($inner instanceof EntityType && $this->providerFactory !== null) {
             if (!$this->hasEntityTransformer($builder)) {
+                // Extract choice_value if it's a string, otherwise use null (defaults to 'id')
+                $choiceValue = $options['choice_value'] ?? null;
+                if (!is_string($choiceValue) && !is_callable($choiceValue) && $choiceValue !== null) {
+                    // EntityType has already processed choice_value into a ChoiceValue object
+                    // Default to 'id' property
+                    $choiceValue = null;
+                }
+
                 $builder->addViewTransformer(
                     new EntityToIdentifierTransformer(
                         registry: $this->providerFactory->getRegistry(),
                         class: $options['class'] ?? throw new \InvalidArgumentException('EntityType requires "class" option'),
-                        choiceValue: $options['choice_value'] ?? null,
+                        choiceValue: $choiceValue,
                         multiple: $options['multiple'] ?? false,
                     )
                 );
@@ -98,12 +106,24 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             throw new \InvalidArgumentException('EntityType requires "class" option.');
         }
 
+        // Extract choice_label if it's valid, otherwise use null
+        $choiceLabel = $options['choice_label'] ?? null;
+        if (!is_string($choiceLabel) && !is_callable($choiceLabel) && $choiceLabel !== null) {
+            $choiceLabel = null;
+        }
+
+        // Extract choice_value if it's valid, otherwise use null
+        $choiceValue = $options['choice_value'] ?? null;
+        if (!is_string($choiceValue) && !is_callable($choiceValue) && $choiceValue !== null) {
+            $choiceValue = null;
+        }
+
         // Get or create auto-generated provider
         $provider = $this->providerFactory->createProvider(
             class: $class,
             queryBuilder: $options['query_builder'] ?? null,
-            choiceLabel: $options['choice_label'] ?? null,
-            choiceValue: $options['choice_value'] ?? null,
+            choiceLabel: $choiceLabel,
+            choiceValue: $choiceValue,
         );
 
         return $provider->getName();
