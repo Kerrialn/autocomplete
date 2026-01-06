@@ -39,8 +39,7 @@ class AutocompleteType extends AbstractType
             'limit' => 10,
             'attr' => [],
             'theme' => null,
-            'choices' => [], // Empty choices since we load via AJAX
-            'choice_loader' => null, // Disable choice loading
+            'compound' => false,
         ]);
 
         $resolver->setAllowedTypes('provider', 'string');
@@ -56,10 +55,5 @@ class AutocompleteType extends AbstractType
     public function getBlockPrefix(): string
     {
         return 'autocomplete';
-    }
-
-    public function getParent(): string
-    {
-        return ChoiceType::class;
     }
 }

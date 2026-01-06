@@ -90,6 +90,11 @@ export default class extends Controller {
     onFocus(event) {
         if (this.isSelectingOption) return;
 
+        // For single mode, select all text so user can easily replace it
+        if (!this.multipleValue && event.target.value) {
+            event.target.select();
+        }
+
         const query = event.target.value.trim();
         if (query.length >= this.minCharsValue) {
             this.search(query);
@@ -197,7 +202,8 @@ export default class extends Controller {
         } else {
             console.log('[autocomplete] Single mode - calling setSingleValue');
             this.setSingleValue(item);
-            this.inputTarget.value = '';
+            // For single mode, show the selected label in the input
+            this.inputTarget.value = item.label;
             this.inputTarget.blur();
         }
 
