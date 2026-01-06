@@ -13,16 +13,22 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 class DoctrineEntityProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
     private readonly PropertyAccessorInterface $propertyAccessor;
+    private readonly mixed $queryBuilder;
+    private readonly mixed $choiceLabel;
+    private readonly mixed $choiceValue;
 
     public function __construct(
         private readonly ManagerRegistry $registry,
         private readonly string $class,
         private readonly string $providerName,
-        private readonly ?callable $queryBuilder = null,
-        private readonly string|callable|null $choiceLabel = null,
-        private readonly string|callable|null $choiceValue = null,
+        ?callable $queryBuilder = null,
+        string|callable|null $choiceLabel = null,
+        string|callable|null $choiceValue = null,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $this->queryBuilder = $queryBuilder;
+        $this->choiceLabel = $choiceLabel;
+        $this->choiceValue = $choiceValue;
     }
 
     public function getName(): string

@@ -24,6 +24,8 @@ return static function (ContainerConfigurator $container): void {
             __DIR__.'/../src/**/Tests/',
             __DIR__.'/../src/Example/demo_routes.php',
             __DIR__.'/../src/Example/*.md',
+            __DIR__.'/../src/Provider/Doctrine/DoctrineEntityProvider.php',
+            __DIR__.'/../src/Form/DataTransformer/',
         ]);
 
     // Explicitly register ProviderRegistry
