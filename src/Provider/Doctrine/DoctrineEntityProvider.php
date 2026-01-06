@@ -159,9 +159,25 @@ class DoctrineEntityProvider implements AutocompleteProviderInterface, ChipProvi
             }
         }
 
-        // Fallback: Try __toString()
+        // Fallback 1: Try __toString()
         if (method_exists($entity, '__toString')) {
             return (string) $entity;
+        }
+
+        // Fallback 2: Try common property names
+        $commonProperties = ['name', 'title', 'label', 'displayName', 'fullName', 'username', 'email'];
+        foreach ($commonProperties as $property) {
+            try {
+                if ($this->propertyAccessor->isReadable($entity, $property)) {
+                    $value = $this->propertyAccessor->getValue($entity, $property);
+                    if ($value !== null && $value !== '') {
+                        return (string) $value;
+                    }
+                }
+            } catch (\Exception $e) {
+                // Try next property
+                continue;
+            }
         }
 
         // Last resort: Show class name + ID

@@ -23,24 +23,36 @@ class EntityProviderFactory
     ): DoctrineEntityProvider {
         $providerName = $this->getProviderName($class);
 
-        // Check if custom provider already exists
-        if ($this->providerRegistry->has($providerName)) {
-            $existingProvider = $this->providerRegistry->get($providerName);
-
-            if ($existingProvider instanceof DoctrineEntityProvider) {
-                return $existingProvider;
-            }
-
-            // Custom provider exists, return it
-            // Note: We can't return non-DoctrineEntityProvider instances, but that's ok
-            // because the caller will use it through the registry anyway
-        }
-
-        // Check cache
+        // Check cache first (before checking registry)
         $cacheKey = $this->getCacheKey($class, $queryBuilder, $choiceLabel, $choiceValue);
 
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
+        }
+
+        // Check if a DoctrineEntityProvider already exists in registry
+        if ($this->providerRegistry->has($providerName)) {
+            $existingProvider = $this->providerRegistry->get($providerName);
+
+            if ($existingProvider instanceof DoctrineEntityProvider) {
+                // Cache it for future calls with same config
+                $this->cache[$cacheKey] = $existingProvider;
+                return $existingProvider;
+            }
+
+            // Custom provider exists - don't override it, just create a new instance for our use
+            // but don't register it (let the custom one handle the provider name)
+            $provider = new DoctrineEntityProvider(
+                registry: $this->registry,
+                class: $class,
+                providerName: $providerName . '.auto', // Different name to avoid conflict
+                queryBuilder: $queryBuilder,
+                choiceLabel: $choiceLabel,
+                choiceValue: $choiceValue,
+            );
+
+            $this->cache[$cacheKey] = $provider;
+            return $provider;
         }
 
         // Create new provider

@@ -76,9 +76,20 @@ class AutocompleteController extends AbstractController
 
     private function resolveProvider(string $providerName): AutocompleteProviderInterface
     {
-        // Check if provider already exists
+        // Check if provider already exists in registry
         if ($this->providerRegistry->has($providerName)) {
-            return $this->providerRegistry->get($providerName);
+            $provider = $this->providerRegistry->get($providerName);
+
+            // For debugging: log what we found
+            if (!$provider instanceof ChipProviderInterface && str_starts_with($providerName, 'entity.')) {
+                error_log(sprintf(
+                    'Warning: Provider "%s" is %s, not DoctrineEntityProvider. Does it implement ChipProviderInterface?',
+                    $providerName,
+                    get_class($provider)
+                ));
+            }
+
+            return $provider;
         }
 
         // Check if it's an entity provider (format: "entity.Fully\Qualified\ClassName")
@@ -91,13 +102,22 @@ class AutocompleteController extends AbstractController
                 );
             }
 
-            // Auto-create entity provider with default settings
-            return $this->entityProviderFactory->createProvider(
+            // Auto-create entity provider with default settings and register it
+            $provider = $this->entityProviderFactory->createProvider(
                 class: $entityClass,
                 queryBuilder: null,
                 choiceLabel: null,
                 choiceValue: null,
             );
+
+            // Verify it implements ChipProviderInterface
+            if (!$provider instanceof ChipProviderInterface) {
+                throw new \LogicException(
+                    sprintf('DoctrineEntityProvider should implement ChipProviderInterface but does not. This is a bug.')
+                );
+            }
+
+            return $provider;
         }
 
         // Provider not found and not an entity provider
