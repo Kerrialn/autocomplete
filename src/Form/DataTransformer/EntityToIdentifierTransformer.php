@@ -12,14 +12,16 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 class EntityToIdentifierTransformer implements DataTransformerInterface
 {
     private readonly PropertyAccessorInterface $propertyAccessor;
+    private readonly mixed $choiceValue;
 
     public function __construct(
         private readonly ManagerRegistry $registry,
         private readonly string $class,
-        private readonly string|callable|null $choiceValue = null,
+        string|callable|null $choiceValue = null,
         private readonly bool $multiple = false
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $this->choiceValue = $choiceValue;
     }
 
     /**
