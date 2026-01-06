@@ -171,6 +171,9 @@ export default class extends Controller {
 
         const item = { id: value, label, meta };
 
+        // Set flag to prevent input event from triggering search
+        this.isSelectingOption = true;
+
         // Cancel pending stuff
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
@@ -199,6 +202,11 @@ export default class extends Controller {
         }
 
         this.dispatch('select', { detail: { item } });
+
+        // Reset flag after a short delay to ensure the blur/clear doesn't trigger search
+        setTimeout(() => {
+            this.isSelectingOption = false;
+        }, 100);
     }
 
     /**
