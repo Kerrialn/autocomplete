@@ -1,8 +1,8 @@
 <?php
 
 namespace Kerrialnewham\Autocomplete\Provider\Provider\Symfony;
-use Kerrialnewham\Autocomplete\Provider\ChipProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
 use Symfony\Component\Intl\Countries;
 
 final class CountryProvider implements AutocompleteProviderInterface, ChipProviderInterface

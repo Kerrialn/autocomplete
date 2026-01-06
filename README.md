@@ -108,7 +108,7 @@ Providers define how to search and retrieve data for your autocomplete fields. C
 
 namespace App\Autocomplete\Provider;
 
-use Kerrialnewham\Autocomplete\Autocomplete\Provider\AutocompleteProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use App\Repository\UserRepository;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
@@ -583,7 +583,7 @@ The custom provider will automatically override the auto-generated one thanks to
 
 namespace App\Autocomplete\Provider;
 
-use Kerrialnewham\Autocomplete\Autocomplete\Provider\AutocompleteProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
