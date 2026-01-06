@@ -1,13 +1,13 @@
-<span class="badge text-bg-primary rounded-pill"
+<span class="badge text-bg-primary rounded-pill d-flex align-items-center justify-content-between gap-1"
       data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
       data-autocomplete-chip-value="{{ item.id }}">
     <span>{{ item.label }}</span>
 
     <a type="button"
-            class="autocomplete-chip-remove"
+            class="btn btn-light fs-4"
             aria-label="Remove {{ item.label }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
-        <i class="bi bi-x fs-3"></i>
+        <i class="bi bi-x"></i>
     </a>
 
     <input type="hidden"
