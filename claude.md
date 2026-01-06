@@ -76,7 +76,20 @@ This approach allows projects to match their existing design systems without fig
 
 5. **Form Integration**
    - `src/Form/Type/AutocompleteType.php` - Symfony FormType
+   - `src/Form/Extension/AutocompleteFormTypeExtension.php` - Form extension for adding autocomplete to any form type
    - `templates/form/autocomplete_widget.html.twig` - Form widget template
+
+6. **Doctrine Integration** (Optional)
+   - `src/Form/Type/AutocompleteEntityType.php` - EntityType-based autocomplete form type
+   - `src/Form/DataTransformer/EntityToIdentifierTransformer.php` - Bidirectional entity ↔ ID conversion
+   - `src/Provider/Doctrine/DoctrineEntityProvider.php` - Generic auto-generated entity provider
+   - `src/Provider/Doctrine/EntityProviderFactory.php` - Factory for creating entity providers on-the-fly
+   - Conditional service registration (only loads if Doctrine ORM installed)
+   - Supports all EntityType options: `query_builder`, `choice_label`, `choice_value`
+   - Automatic provider generation with custom override support
+   - Two integration approaches:
+     - `AutocompleteEntityType` - Dedicated form type extending EntityType
+     - `EntityType` with `autocomplete: true` - Form extension approach
 
 #### Templates (Twig)
 

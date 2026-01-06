@@ -384,6 +384,196 @@ document.addEventListener('autocomplete:remove', (event) => {
 });
 ```
 
+## Entity Autocomplete
+
+The bundle provides built-in support for Doctrine entities with automatic provider generation and data transformation.
+
+### Installation
+
+To use entity autocomplete features, install Doctrine ORM:
+
+```bash
+composer require doctrine/orm doctrine/doctrine-bundle
+```
+
+### Using AutocompleteEntityType
+
+The `AutocompleteEntityType` extends Symfony's `EntityType` and provides autocomplete functionality with zero configuration:
+
+```php
+use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
+
+$builder->add('author', AutocompleteEntityType::class, [
+    'class' => User::class,
+    'choice_label' => 'username',
+    'placeholder' => 'Search for a user...',
+]);
+```
+
+#### With Query Builder
+
+Customize the search query:
+
+```php
+$builder->add('category', AutocompleteEntityType::class, [
+    'class' => Category::class,
+    'choice_label' => 'name',
+    'query_builder' => function (EntityRepository $repo) {
+        return $repo->createQueryBuilder('c')
+            ->where('c.active = true')
+            ->orderBy('c.name', 'ASC');
+    },
+]);
+```
+
+#### Multiple Selection
+
+```php
+$builder->add('tags', AutocompleteEntityType::class, [
+    'class' => Tag::class,
+    'multiple' => true,
+    'choice_label' => 'name',
+    'theme' => 'cards',
+]);
+```
+
+#### With Callable Choice Label
+
+```php
+$builder->add('author', AutocompleteEntityType::class, [
+    'class' => User::class,
+    'choice_label' => fn(User $u) => $u->getFullName(),
+    'theme' => 'bootstrap-5',
+]);
+```
+
+#### Custom Choice Value
+
+Use a property other than 'id' as the identifier:
+
+```php
+$builder->add('product', AutocompleteEntityType::class, [
+    'class' => Product::class,
+    'choice_label' => 'name',
+    'choice_value' => 'uuid', // Use UUID instead of ID
+]);
+```
+
+### Using EntityType with Autocomplete Extension
+
+You can also add autocomplete to existing `EntityType` fields:
+
+```php
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+
+$builder->add('author', EntityType::class, [
+    'class' => User::class,
+    'autocomplete' => true, // Enable autocomplete
+    'placeholder' => 'Search for a user...',
+    'theme' => 'dark',
+]);
+```
+
+This approach works with all existing EntityType options and requires minimal changes to existing forms.
+
+### Custom Entity Providers
+
+For complex search logic or custom metadata, create a custom provider:
+
+```php
+<?php
+
+namespace App\Autocomplete\Provider;
+
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+
+#[AutoconfigureTag('autocomplete.provider')]
+class UserProvider implements AutocompleteProviderInterface, ChipProviderInterface
+{
+    public function __construct(
+        private readonly UserRepository $userRepository,
+    ) {
+    }
+
+    public function getName(): string
+    {
+        // Override auto-generated provider
+        return 'entity.App\Entity\User';
+    }
+
+    public function search(string $query, int $limit, array $selected): array
+    {
+        // Custom search: email, username, first/last name
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->where('LOWER(u.username) LIKE :query')
+            ->orWhere('LOWER(u.email) LIKE :query')
+            ->orWhere('LOWER(u.firstName) LIKE :query')
+            ->orWhere('LOWER(u.lastName) LIKE :query')
+            ->setParameter('query', '%' . strtolower($query) . '%')
+            ->setMaxResults($limit);
+
+        if (!empty($selected)) {
+            $qb->andWhere('u.id NOT IN (:selected)')
+                ->setParameter('selected', $selected);
+        }
+
+        $users = $qb->getQuery()->getResult();
+
+        return array_map(fn(User $u) => [
+            'id' => (string) $u->getId(),
+            'label' => $u->getFullName(),
+            'meta' => [
+                'email' => $u->getEmail(),
+                'avatar' => $u->getAvatarUrl(),
+                'role' => $u->getRoleLabel(),
+            ],
+        ], $users);
+    }
+
+    public function get(string $id): ?array
+    {
+        $user = $this->userRepository->find($id);
+
+        if (!$user) {
+            return null;
+        }
+
+        return [
+            'id' => (string) $user->getId(),
+            'label' => $user->getFullName(),
+            'meta' => [
+                'email' => $user->getEmail(),
+                'avatar' => $user->getAvatarUrl(),
+                'role' => $user->getRoleLabel(),
+            ],
+        ];
+    }
+}
+```
+
+The custom provider will automatically override the auto-generated one thanks to the naming convention (`entity.App\Entity\User`).
+
+### How It Works
+
+**Entity to ID Conversion:**
+- Form field works with entity objects (like standard EntityType)
+- Data transformer converts entity ↔ ID for AJAX communication
+- Form submission automatically loads entities from database
+
+**Automatic Provider Generation:**
+- Provider created on-the-fly based on entity class
+- No manual configuration needed for simple cases
+- Custom providers automatically override defaults
+
+**Chip Rendering:**
+- Selected items rendered server-side via `/_autocomplete/{provider}/chip`
+- Full entity data available for rich chip templates
+- Supports metadata display (avatars, emails, etc.)
+
 ## Advanced Usage
 
 ### Custom Provider with Complex Queries

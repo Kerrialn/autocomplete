@@ -47,4 +47,9 @@ final class ProviderRegistry
     {
         return isset($this->providers[$name]);
     }
+
+    public function register(AutocompleteProviderInterface $provider): void
+    {
+        $this->providers[$provider->getName()] = $provider;
+    }
 }

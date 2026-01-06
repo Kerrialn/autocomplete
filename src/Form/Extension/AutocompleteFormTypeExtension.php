@@ -2,10 +2,14 @@
 
 namespace Kerrialnewham\Autocomplete\Form\Extension;
 
+use Kerrialnewham\Autocomplete\Form\DataTransformer\EntityToIdentifierTransformer;
+use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,6 +18,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 {
     public function __construct(
         private readonly TemplateResolver $templates,
+        private readonly ?EntityProviderFactory $providerFactory = null,
     ) {}
 
     public static function getExtendedTypes(): iterable
@@ -45,6 +50,65 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('theme', ['null', 'string']);
     }
 
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        if (!$options['autocomplete']) {
+            return;
+        }
+
+        $inner = $builder->getType()->getInnerType();
+
+        // Add EntityToIdentifierTransformer for EntityType with autocomplete
+        if ($inner instanceof EntityType && $this->providerFactory !== null) {
+            if (!$this->hasEntityTransformer($builder)) {
+                $builder->addViewTransformer(
+                    new EntityToIdentifierTransformer(
+                        registry: $this->providerFactory->getRegistry(),
+                        class: $options['class'] ?? throw new \InvalidArgumentException('EntityType requires "class" option'),
+                        choiceValue: $options['choice_value'] ?? null,
+                        multiple: $options['multiple'] ?? false,
+                    )
+                );
+            }
+        }
+    }
+
+    private function hasEntityTransformer(FormBuilderInterface $builder): bool
+    {
+        foreach ($builder->getViewTransformers() as $transformer) {
+            if ($transformer instanceof EntityToIdentifierTransformer) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function resolveEntityProvider(FormInterface $form, array $options): string
+    {
+        if ($this->providerFactory === null) {
+            throw new \LogicException(
+                'EntityType autocomplete requires Doctrine ORM. ' .
+                'Install: composer require doctrine/orm doctrine/doctrine-bundle'
+            );
+        }
+
+        $class = $options['class'] ?? null;
+
+        if (!$class) {
+            throw new \InvalidArgumentException('EntityType requires "class" option.');
+        }
+
+        // Get or create auto-generated provider
+        $provider = $this->providerFactory->createProvider(
+            class: $class,
+            queryBuilder: $options['query_builder'] ?? null,
+            choiceLabel: $options['choice_label'] ?? null,
+            choiceValue: $options['choice_value'] ?? null,
+        );
+
+        return $provider->getName();
+    }
+
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         if (!$options['autocomplete']) {
@@ -64,6 +128,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
             $provider = match (true) {
                 $inner instanceof CountryType => 'symfony_countries',
+                $inner instanceof EntityType => $this->resolveEntityProvider($form, $options),
                 default => null,
             };
         }

@@ -2,8 +2,11 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Kerrialnewham\Autocomplete\Controller\AutocompleteController;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteFormTypeExtension;
+use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
+use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
@@ -46,4 +49,18 @@ return static function (ContainerConfigurator $container): void {
         ->autowire()
         ->autoconfigure()
         ->tag('form.type_extension');
+
+    // Doctrine entity support (conditional on Doctrine availability)
+    if (interface_exists(ManagerRegistry::class)) {
+        $services->set(EntityProviderFactory::class)
+            ->autowire()
+            ->args([
+                service(ManagerRegistry::class),
+                service(ProviderRegistry::class),
+            ]);
+
+        $services->set(AutocompleteEntityType::class)
+            ->autowire()
+            ->tag('form.type');
+    }
 };
