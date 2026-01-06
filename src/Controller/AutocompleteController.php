@@ -2,8 +2,8 @@
 
 namespace Kerrialnewham\Autocomplete\Controller;
 
-use Kerrialnewham\Autocomplete\Provider\ChipProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
@@ -102,22 +102,13 @@ class AutocompleteController extends AbstractController
                 );
             }
 
-            // Auto-create entity provider with default settings and register it
-            $provider = $this->entityProviderFactory->createProvider(
+            // Auto-create entity provider with default settings
+            return $this->entityProviderFactory->createProvider(
                 class: $entityClass,
                 queryBuilder: null,
                 choiceLabel: null,
                 choiceValue: null,
             );
-
-            // Verify it implements ChipProviderInterface
-            if (!$provider instanceof ChipProviderInterface) {
-                throw new \LogicException(
-                    sprintf('DoctrineEntityProvider should implement ChipProviderInterface but does not. This is a bug.')
-                );
-            }
-
-            return $provider;
         }
 
         // Provider not found and not an entity provider
