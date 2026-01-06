@@ -56,10 +56,10 @@
         </div>
     </div>
 
-    {% if not multiple and value is defined %}
+    {% if not multiple %}
         <input type="hidden"
                name="{{ name }}"
-               value="{{ value.id|default('') }}"
+               value="{{ value.id|default(value|default('')) }}"
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput">
     {% endif %}
 </div>
