@@ -3,6 +3,8 @@
 namespace Kerrialnewham\Autocomplete\Controller;
 
 use Kerrialnewham\Autocomplete\Provider\ChipProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
+use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +20,7 @@ class AutocompleteController extends AbstractController
     public function __construct(
         private readonly ProviderRegistry $providerRegistry,
         private readonly TemplateResolver $templates,
+        private readonly ?EntityProviderFactory $entityProviderFactory = null,
     ) {}
 
     #[Route('/_autocomplete/{provider}', name: 'autocomplete_search', methods: ['GET'])]
@@ -32,7 +35,7 @@ class AutocompleteController extends AbstractController
         }
 
         $theme = $this->templates->theme($request->query->get('theme'));
-        $autocompleteProvider = $this->providerRegistry->get($provider);
+        $autocompleteProvider = $this->resolveProvider($provider);
 
         $results = $autocompleteProvider->search($query, $limit, $selected);
 
@@ -51,16 +54,16 @@ class AutocompleteController extends AbstractController
 
         $inputName = (string) $request->query->get('name', 'autocomplete');
         $theme = $this->templates->theme($request->query->get('theme'));
-        $provider = $this->providerRegistry->get($provider);
+        $providerInstance = $this->resolveProvider($provider);
 
-        if (!$provider instanceof ChipProviderInterface) {
+        if (!$providerInstance instanceof ChipProviderInterface) {
             throw new HttpException(
                 500,
                 sprintf('Provider "%s" must implement %s to render chips.', $provider, ChipProviderInterface::class)
             );
         }
 
-        $item = $provider->get($id);
+        $item = $providerInstance->get($id);
         if (!$item) {
             throw new NotFoundHttpException(sprintf('No item found for id "%s".', $id));
         }
@@ -69,5 +72,35 @@ class AutocompleteController extends AbstractController
             'item' => $item,
             'name' => $inputName,
         ]);
+    }
+
+    private function resolveProvider(string $providerName): AutocompleteProviderInterface
+    {
+        // Check if provider already exists
+        if ($this->providerRegistry->has($providerName)) {
+            return $this->providerRegistry->get($providerName);
+        }
+
+        // Check if it's an entity provider (format: "entity.Fully\Qualified\ClassName")
+        if (str_starts_with($providerName, 'entity.') && $this->entityProviderFactory !== null) {
+            $entityClass = substr($providerName, 7); // Remove "entity." prefix
+
+            if (!class_exists($entityClass)) {
+                throw new NotFoundHttpException(
+                    sprintf('Entity class "%s" does not exist for provider "%s".', $entityClass, $providerName)
+                );
+            }
+
+            // Auto-create entity provider with default settings
+            return $this->entityProviderFactory->createProvider(
+                class: $entityClass,
+                queryBuilder: null,
+                choiceLabel: null,
+                choiceValue: null,
+            );
+        }
+
+        // Provider not found and not an entity provider
+        return $this->providerRegistry->get($providerName); // Will throw proper exception
     }
 }
