@@ -4,6 +4,7 @@ namespace Kerrialnewham\Autocomplete\Form\Type;
 
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -38,7 +39,8 @@ class AutocompleteType extends AbstractType
             'limit' => 10,
             'attr' => [],
             'theme' => null,
-            'compound' => false,
+            'choices' => [], // Empty choices since we load via AJAX
+            'choice_loader' => null, // Disable choice loading
         ]);
 
         $resolver->setAllowedTypes('provider', 'string');
@@ -54,5 +56,10 @@ class AutocompleteType extends AbstractType
     public function getBlockPrefix(): string
     {
         return 'autocomplete';
+    }
+
+    public function getParent(): string
+    {
+        return ChoiceType::class;
     }
 }
