@@ -1,5 +1,3 @@
-{# templates/theme/flowbite/autocomplete.html.twig #}
-
 {% set attr = attr|default({}) %}
 {% set provider = provider ?? 'MISSING_PROVIDER' %}
 {% set multiple = multiple|default(false) %}
@@ -24,24 +22,21 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
-<div
-        class="relative"
-        data-autocomplete-theme="{{ theme_name }}"
-        data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme_name }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-multiple-value="{{ multiple ? 'true' : 'false' }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-min-chars-value="{{ min_chars }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-debounce-value="{{ debounce }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-limit-value="{{ limit }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ path('autocomplete_search', { provider: provider, theme: theme_name }) }}"
-        data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper"
->
+<div class="autocomplete-wrapper relative"
+     data-autocomplete-theme="{{ theme_name }}"
+     data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme_name }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-multiple-value="{{ multiple ? 'true' : 'false' }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-min-chars-value="{{ min_chars }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-debounce-value="{{ debounce }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-limit-value="{{ limit }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ path('autocomplete_search', { provider: provider, theme: theme_name }) }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
+
     {% if multiple %}
-        <div
-                class="flex flex-wrap gap-2 mb-2"
-                data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"
-        >
+        <div class="autocomplete-chips flex flex-wrap gap-2 mb-2"
+             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
             {% if value is defined and value is iterable %}
                 {% for item in value %}
                     {% include '@Autocomplete/theme/flowbite/_chip.html.twig' with {
@@ -53,54 +48,39 @@
         </div>
     {% endif %}
 
-    <div class="relative">
-        <input
-                type="text"
-                class="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 {{ attr.class|default('') }}"
-                placeholder="{{ placeholder_text }}"
-                autocomplete="off"
-                role="combobox"
-                aria-autocomplete="list"
-                aria-expanded="false"
-                aria-haspopup="listbox"
-                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
-                data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
+    <div class="autocomplete-input-wrapper relative">
+        <input type="text"
+               class="autocomplete-input block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:ring-blue-600 {{ attr.class|default('') }}"
+               placeholder="{{ placeholder_text }}"
+               autocomplete="off"
+               data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
+               data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
         {% for attrName, attrValue in attr %}
-            {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
-        {% endfor %}
-        />
+        {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
+        {% endfor %}>
 
-        {# Loading indicator (Flowbite-esque) #}
-        <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
-                data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading"
-                style="display: none;"
-                aria-hidden="true"
-        >
-            <svg class="h-4 w-4 animate-spin text-gray-400 dark:text-gray-300" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
-            </svg>
+        {# KEEP span + style toggle (controller usually flips display) #}
+        <span class="autocomplete-loading absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-gray-500"
+              data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading"
+              style="display: none;">
+            Loading...
+        </span>
+    </div>
+
+    {# KEEP style toggle (controller usually flips display) #}
+    <div class="autocomplete-dropdown absolute z-50 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg"
+         data-kerrialnewham--autocomplete--ssr-autocomplete-target="dropdown"
+         role="listbox"
+         style="display: none;">
+        <div class="autocomplete-options max-h-72 overflow-y-auto py-1"
+             data-kerrialnewham--autocomplete--ssr-autocomplete-target="optionsContainer">
         </div>
     </div>
 
-    <div
-            class="absolute z-50 mt-2 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700"
-            data-kerrialnewham--autocomplete--ssr-autocomplete-target="dropdown"
-            role="listbox"
-    >
-        <div
-                class="max-h-72 overflow-y-auto py-1"
-                data-kerrialnewham--autocomplete--ssr-autocomplete-target="optionsContainer"
-        ></div>
-    </div>
-
     {% if not multiple %}
-        <input
-                type="hidden"
-                name="{{ name }}"
-                value="{{ value.id|default(value|default('')) }}"
-                data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput"
-        />
+        <input type="hidden"
+               name="{{ name }}"
+               value="{{ value.id|default(value|default('')) }}"
+               data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput">
     {% endif %}
 </div>
