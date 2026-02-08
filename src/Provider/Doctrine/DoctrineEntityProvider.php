@@ -15,7 +15,7 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         private readonly ManagerRegistry $registry,
         private readonly string $class,
         private readonly string $providerName,
-        private readonly callable $queryBuilder = null,
+        private readonly callable $queryBuilder,
         private readonly string|callable|null $choiceLabel = null,
         private readonly string|callable|null $choiceValue = null,
     ) {}
