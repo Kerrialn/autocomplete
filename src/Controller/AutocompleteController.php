@@ -56,7 +56,7 @@ final class AutocompleteController extends AbstractController
     #[Route('/_autocomplete/{provider}/chip', name: 'autocomplete_chip', methods: ['GET'])]
     public function chip(string $provider, Request $request): Response
     {
-        $this->assertSigned($request, $provider, 'autocomplete_chip');
+        $this->assertSigned($request, $provider, 'autocomplete_search');
 
         $id = (string) $request->query->get('id', '');
         if ($id === '') {
