@@ -35,6 +35,8 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             'provider' => null,
 
             'placeholder' => 'Search...',
+            'placeholder_translation_parameters' => [],
+
             'min_chars' => 1,
             'debounce' => 300,
             'limit' => 10,
@@ -44,6 +46,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('autocomplete', 'bool');
         $resolver->setAllowedTypes('provider', ['null', 'string']);
         $resolver->setAllowedTypes('placeholder', 'string');
+        $resolver->setAllowedTypes('placeholder_translation_parameters', 'array');
         $resolver->setAllowedTypes('min_chars', 'int');
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
@@ -164,6 +167,12 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         $view->vars['provider'] = $provider;
         $view->vars['placeholder'] = $options['placeholder'];
+        $view->vars['placeholder_translation_parameters'] = $options['placeholder_translation_parameters'];
+
+        // make sure these exist for the template
+        $view->vars['translation_domain'] = $options['translation_domain'] ?? ($view->vars['translation_domain'] ?? null);
+        $view->vars['translation_parameters'] = $options['translation_parameters'] ?? ($view->vars['translation_parameters'] ?? []);
+
         $view->vars['min_chars'] = $options['min_chars'];
         $view->vars['debounce'] = $options['debounce'];
         $view->vars['limit'] = $options['limit'];

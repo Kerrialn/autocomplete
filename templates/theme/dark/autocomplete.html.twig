@@ -6,15 +6,19 @@
 {% set limit = limit|default(10) %}
 {% set theme_name = theme ?? 'default' %}
 
-{% set placeholder_text = placeholder %}
+{% set placeholder = placeholder|default('Search...') %}
+
+{% set td = (translation_domain is defined ? translation_domain : null) %}
+{% set tp = (placeholder_translation_parameters is defined
+    ? placeholder_translation_parameters
+    : (translation_parameters is defined ? translation_parameters : {}))
+%}
+
 {% if td is same as(false) %}
-    {# no translation #}
     {% set placeholder_text = placeholder %}
 {% elseif td is null %}
-    {# default domain (messages) #}
     {% set placeholder_text = placeholder|trans(tp) %}
 {% else %}
-    {# explicit domain #}
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
