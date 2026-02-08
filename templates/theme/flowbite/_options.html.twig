@@ -1,12 +1,10 @@
 {% set td = (translation_domain is defined ? translation_domain : null) %}
-{% if td == '' %}
-    {% set td = null %}
-{% endif %}
+{% if td == '' %}{% set td = null %}{% endif %}
 
 {% if results is empty %}
-    <div class="autocomplete-empty">No results</div>
+    <div class="px-4 py-2 text-sm text-gray-500">No results</div>
 {% else %}
-    <ul class="autocomplete-list" role="listbox" aria-label="Autocomplete results">
+    <ul class="text-sm text-gray-700" role="listbox" aria-label="Autocomplete results">
         {% for item in results %}
             {% set label_text = item.label %}
             {% if td is not same as(false) %}
@@ -17,11 +15,11 @@
                 {% endif %}
             {% endif %}
 
-            <li class="autocomplete-option"
+            <li class="autocomplete-option cursor-pointer select-none px-4 py-2 hover:bg-gray-100"
                 role="option"
                 tabindex="-1"
-                data-autocomplete-option-value="{{ item.id }}"
-                data-autocomplete-option-label="{{ label_text }}"
+                data-autocomplete-option-value="{{ item.id|e('html_attr') }}"
+                data-autocomplete-option-label="{{ label_text|e('html_attr') }}"
                     {% if item.meta is defined %}
                         data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
                     {% endif %}
