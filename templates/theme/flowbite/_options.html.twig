@@ -1,0 +1,24 @@
+{# templates/theme/flowbite/_options.html.twig #}
+
+{% if results is empty %}
+    <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-300">
+        No results
+    </div>
+{% else %}
+    <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" role="listbox" aria-label="Autocomplete results">
+        {% for item in results %}
+            <li
+                    class="cursor-pointer px-4 py-2 hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-gray-600 dark:focus:bg-gray-600"
+                    role="option"
+                    tabindex="-1"
+                    data-autocomplete-option-value="{{ item.id }}"
+                    data-autocomplete-option-label="{{ item.label }}"
+                    {% if item.meta is defined %}
+                        data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
+                    {% endif %}
+            >
+                {{ item.label }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
