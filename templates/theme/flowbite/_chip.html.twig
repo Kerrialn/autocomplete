@@ -1,11 +1,24 @@
+{# templates/theme/flowbite/_chip.html.twig #}
+
+{% set td = (translation_domain is defined ? translation_domain : null) %}
+
+{% set label_text = item.label %}
+{% if td is not same as(false) %}
+    {% if td is null %}
+        {% set label_text = item.label|trans %}
+    {% else %}
+        {% set label_text = item.label|trans({}, td) %}
+    {% endif %}
+{% endif %}
+
 <div class="autocomplete-chip inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
      data-autocomplete-chip-value="{{ item.id }}">
-    <span class="autocomplete-chip-label max-w-[18rem] truncate">{{ item.label }}</span>
+    <span class="autocomplete-chip-label max-w-[18rem] truncate">{{ label_text }}</span>
 
     <button type="button"
             class="autocomplete-chip-remove ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Remove {{ item.label }}"
+            aria-label="Remove {{ label_text }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
         &times;
     </button>

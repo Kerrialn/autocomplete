@@ -1,3 +1,5 @@
+{# templates/theme/flowbite/autocomplete.html.twig #}
+
 {% set attr = attr|default({}) %}
 {% set provider = provider ?? 'MISSING_PROVIDER' %}
 {% set multiple = multiple|default(false) %}
@@ -22,6 +24,12 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
+{# pass translation_domain through to the async options request #}
+{% set url_value = path('autocomplete_search', { provider: provider, theme: theme_name }) %}
+{% if td is not same as(false) and td is not null and td is not empty %}
+    {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'translation_domain=' ~ td|url_encode %}
+{% endif %}
+
 <div class="autocomplete-wrapper relative"
      data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
@@ -31,7 +39,7 @@
      data-kerrialnewham--autocomplete--ssr-autocomplete-min-chars-value="{{ min_chars }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-debounce-value="{{ debounce }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-limit-value="{{ limit }}"
-     data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ path('autocomplete_search', { provider: provider, theme: theme_name }) }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ url_value }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
 
     {% if multiple %}
@@ -41,7 +49,8 @@
                 {% for item in value %}
                     {% include '@Autocomplete/theme/flowbite/_chip.html.twig' with {
                         item: item,
-                        name: name
+                        name: name,
+                        translation_domain: td
                     } %}
                 {% endfor %}
             {% endif %}
@@ -59,7 +68,6 @@
         {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
         {% endfor %}>
 
-        {# KEEP span + style toggle (controller usually flips display) #}
         <span class="autocomplete-loading absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-gray-500"
               data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading"
               style="display: none;">
@@ -67,7 +75,6 @@
         </span>
     </div>
 
-    {# KEEP style toggle (controller usually flips display) #}
     <div class="autocomplete-dropdown absolute z-50 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg"
          data-kerrialnewham--autocomplete--ssr-autocomplete-target="dropdown"
          role="listbox"
