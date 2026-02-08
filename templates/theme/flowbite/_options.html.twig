@@ -1,15 +1,17 @@
 {# templates/theme/flowbite/_options.html.twig #}
 
 {% set td = (translation_domain is defined ? translation_domain : null) %}
-{% if td is null and app is defined %}
+{% if td is null and app is defined and app.request is defined %}
     {% set td = app.request.query.get('translation_domain') %}
 {% endif %}
-{% if td is empty %}
+{% if td == '' %}
     {% set td = null %}
 {% endif %}
 
 {% if results is empty %}
-    <div class="autocomplete-empty px-4 py-2 text-sm text-gray-500">No results</div>
+    <div class="autocomplete-empty px-4 py-2 text-sm text-gray-500">
+        No results
+    </div>
 {% else %}
     <ul class="autocomplete-list py-1 text-sm text-gray-700" role="listbox" aria-label="Autocomplete results">
         {% for item in results %}

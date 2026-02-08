@@ -24,7 +24,7 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
-{# pass translation_domain through to the async options request #}
+{# pass translation_domain to the async options request so _options can translate labels #}
 {% set url_value = path('autocomplete_search', { provider: provider, theme: theme_name }) %}
 {% if td is not same as(false) and td is not null and td is not empty %}
     {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'translation_domain=' ~ td|url_encode %}
