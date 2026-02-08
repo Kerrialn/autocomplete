@@ -1,5 +1,3 @@
-{# templates/theme/flowbite/_options.html.twig #}
-
 {% set td = (translation_domain is defined ? translation_domain : null) %}
 {% if td is null and app is defined and app.request is defined %}
     {% set td = app.request.query.get('translation_domain') %}
@@ -9,12 +7,11 @@
 {% endif %}
 
 {% if results is empty %}
-    <div class="autocomplete-empty px-4 py-2 text-sm text-gray-500">
-        No results
-    </div>
+    <div class="autocomplete-empty">No results</div>
 {% else %}
-    <ul class="autocomplete-list py-1 text-sm text-gray-700" role="listbox" aria-label="Autocomplete results">
+    <ul class="autocomplete-list" role="listbox" aria-label="Autocomplete results">
         {% for item in results %}
+            {# TRANSLATE ONCE #}
             {% set label_text = item.label %}
             {% if td is not same as(false) %}
                 {% if td is null %}
@@ -24,11 +21,13 @@
                 {% endif %}
             {% endif %}
 
-            <li class="autocomplete-option cursor-pointer px-4 py-2 hover:bg-gray-100"
+            {# IMPORTANT: data-autocomplete-option-label MUST be the translated label,
+               because the JS uses it to build the chip #}
+            <li class="autocomplete-option"
                 role="option"
                 tabindex="-1"
-                data-autocomplete-option-value="{{ item.id }}"
-                data-autocomplete-option-label="{{ label_text }}"
+                data-autocomplete-option-value="{{ item.id|e('html_attr') }}"
+                data-autocomplete-option-label="{{ label_text|e('html_attr') }}"
                     {% if item.meta is defined %}
                         data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
                     {% endif %}
