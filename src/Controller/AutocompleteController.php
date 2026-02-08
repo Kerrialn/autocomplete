@@ -26,7 +26,7 @@ class AutocompleteController extends AbstractController
     #[Route('/_autocomplete/{provider}', name: 'autocomplete_search', methods: ['GET'])]
     public function search(string $provider, Request $request): Response
     {
-        $query = $request->query->get('query', '');
+        $query = (string) $request->query->get('query', '');
         $limit = (int) $request->query->get('limit', 10);
 
         $selected = $request->query->all('selected');
@@ -39,8 +39,14 @@ class AutocompleteController extends AbstractController
 
         $results = $autocompleteProvider->search($query, $limit, $selected);
 
+        $translationDomain = $request->query->get('translation_domain');
+        if ($translationDomain === '') {
+            $translationDomain = null;
+        }
+
         return $this->render($this->templates->options($theme), [
             'results' => $results,
+            'translation_domain' => $translationDomain,
         ]);
     }
 
@@ -68,33 +74,26 @@ class AutocompleteController extends AbstractController
             throw new NotFoundHttpException(sprintf('No item found for id "%s".', $id));
         }
 
+        $translationDomain = $request->query->get('translation_domain');
+        if ($translationDomain === '') {
+            $translationDomain = null;
+        }
+
         return $this->render($this->templates->chip($theme), [
             'item' => $item,
             'name' => $inputName,
+            'translation_domain' => $translationDomain,
         ]);
     }
 
     private function resolveProvider(string $providerName): AutocompleteProviderInterface
     {
-        // Check if provider already exists in registry
         if ($this->providerRegistry->has($providerName)) {
-            $provider = $this->providerRegistry->get($providerName);
-
-            // For debugging: log what we found
-            if (!$provider instanceof ChipProviderInterface && str_starts_with($providerName, 'entity.')) {
-                error_log(sprintf(
-                    'Warning: Provider "%s" is %s, not DoctrineEntityProvider. Does it implement ChipProviderInterface?',
-                    $providerName,
-                    get_class($provider)
-                ));
-            }
-
-            return $provider;
+            return $this->providerRegistry->get($providerName);
         }
 
-        // Check if it's an entity provider (format: "entity.Fully\Qualified\ClassName")
         if (str_starts_with($providerName, 'entity.') && $this->entityProviderFactory !== null) {
-            $entityClass = substr($providerName, 7); // Remove "entity." prefix
+            $entityClass = substr($providerName, 7);
 
             if (!class_exists($entityClass)) {
                 throw new NotFoundHttpException(
@@ -102,7 +101,6 @@ class AutocompleteController extends AbstractController
                 );
             }
 
-            // Auto-create entity provider with default settings
             return $this->entityProviderFactory->createProvider(
                 class: $entityClass,
                 queryBuilder: null,
@@ -111,7 +109,6 @@ class AutocompleteController extends AbstractController
             );
         }
 
-        // Provider not found and not an entity provider
-        return $this->providerRegistry->get($providerName); // Will throw proper exception
+        return $this->providerRegistry->get($providerName);
     }
 }

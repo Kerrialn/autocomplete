@@ -1,5 +1,3 @@
-{# templates/theme/flowbite/autocomplete.html.twig #}
-
 {% set attr = attr|default({}) %}
 {% set provider = provider ?? 'MISSING_PROVIDER' %}
 {% set multiple = multiple|default(false) %}
@@ -24,13 +22,12 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
-{# pass translation_domain to the async options request so _options can translate labels #}
 {% set url_value = path('autocomplete_search', { provider: provider, theme: theme_name }) %}
 {% if td is not same as(false) and td is not null and td is not empty %}
     {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'translation_domain=' ~ td|url_encode %}
 {% endif %}
 
-<div class="autocomplete-wrapper relative"
+<div class="autocomplete-wrapper"
      data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
      data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme_name }}"
@@ -43,8 +40,7 @@
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
 
     {% if multiple %}
-        <div class="autocomplete-chips flex flex-wrap gap-2 mb-2"
-             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
+        <div class="autocomplete-chips" data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
             {% if value is defined and value is iterable %}
                 {% for item in value %}
                     {% include '@Autocomplete/theme/flowbite/_chip.html.twig' with {
@@ -57,9 +53,9 @@
         </div>
     {% endif %}
 
-    <div class="autocomplete-input-wrapper relative">
+    <div class="autocomplete-input-wrapper">
         <input type="text"
-               class="autocomplete-input block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:ring-blue-600 {{ attr.class|default('') }}"
+               class="autocomplete-input {{ attr.class|default('') }}"
                placeholder="{{ placeholder_text }}"
                autocomplete="off"
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
@@ -68,19 +64,18 @@
         {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
         {% endfor %}>
 
-        <span class="autocomplete-loading absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-gray-500"
+        <span class="autocomplete-loading"
               data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading"
               style="display: none;">
             Loading...
         </span>
     </div>
 
-    <div class="autocomplete-dropdown absolute z-50 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg"
+    <div class="autocomplete-dropdown"
          data-kerrialnewham--autocomplete--ssr-autocomplete-target="dropdown"
          role="listbox"
          style="display: none;">
-        <div class="autocomplete-options max-h-72 overflow-y-auto py-1"
-             data-kerrialnewham--autocomplete--ssr-autocomplete-target="optionsContainer">
+        <div class="autocomplete-options" data-kerrialnewham--autocomplete--ssr-autocomplete-target="optionsContainer">
         </div>
     </div>
 

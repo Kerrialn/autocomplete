@@ -1,7 +1,4 @@
 {% set td = (translation_domain is defined ? translation_domain : null) %}
-{% if td is null and app is defined and app.request is defined %}
-    {% set td = app.request.query.get('translation_domain') %}
-{% endif %}
 {% if td == '' %}
     {% set td = null %}
 {% endif %}
@@ -11,7 +8,6 @@
 {% else %}
     <ul class="autocomplete-list" role="listbox" aria-label="Autocomplete results">
         {% for item in results %}
-            {# TRANSLATE ONCE #}
             {% set label_text = item.label %}
             {% if td is not same as(false) %}
                 {% if td is null %}
@@ -21,13 +17,11 @@
                 {% endif %}
             {% endif %}
 
-            {# IMPORTANT: data-autocomplete-option-label MUST be the translated label,
-               because the JS uses it to build the chip #}
             <li class="autocomplete-option"
                 role="option"
                 tabindex="-1"
-                data-autocomplete-option-value="{{ item.id|e('html_attr') }}"
-                data-autocomplete-option-label="{{ label_text|e('html_attr') }}"
+                data-autocomplete-option-value="{{ item.id }}"
+                data-autocomplete-option-label="{{ label_text }}"
                     {% if item.meta is defined %}
                         data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
                     {% endif %}

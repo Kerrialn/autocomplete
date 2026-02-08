@@ -1,4 +1,7 @@
 {% set td = (translation_domain is defined ? translation_domain : null) %}
+{% if td == '' %}
+    {% set td = null %}
+{% endif %}
 
 {% set label_text = item.label %}
 {% if td is not same as(false) %}
