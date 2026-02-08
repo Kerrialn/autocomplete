@@ -9,13 +9,16 @@ use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
+use Kerrialnewham\Autocomplete\Security\AutocompleteSigner;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
+use Kerrialnewham\Autocomplete\Twig\Extension\AutocompleteTwigExtension;
+use Symfony\Bundle\SecurityBundle\Security;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services()
         ->defaults()
-            ->autowire()
-            ->autoconfigure();
+        ->autowire()
+        ->autoconfigure();
 
     // Load all classes from src/ except DI, Tests, and route files
     $services->load('Kerrialnewham\\Autocomplete\\', __DIR__.'/../src/')
@@ -28,17 +31,38 @@ return static function (ContainerConfigurator $container): void {
             __DIR__.'/../src/Form/DataTransformer/',
         ]);
 
+    // Signing secret param (must be set in host app env)
+    $container->parameters()->set('kerrialnewham.autocomplete.signing_secret', env('AUTOCOMPLETE_SIGNING_SECRET'));
+
+    // Signer
+    $services->set(AutocompleteSigner::class)
+        ->args([
+            '$secret' => '%kerrialnewham.autocomplete.signing_secret%',
+        ]);
+
+    // Twig function: autocomplete_sig(...)
+    // (requires SecurityBundle)
+    $services->set(AutocompleteTwigExtension::class)
+        ->args([
+            service(AutocompleteSigner::class),
+            service(Security::class),
+        ])
+        ->tag('twig.extension');
+
     // Explicitly register ProviderRegistry
     $services->set(ProviderRegistry::class)
         ->autowire()
         ->public()
         ->args([tagged_iterator('autocomplete.provider')]);
 
-    // Explicitly register controllers as public
+    // Controllers as public + inject signing secret
     $services->set(AutocompleteController::class)
         ->autowire()
         ->public()
-        ->tag('controller.service_arguments');
+        ->tag('controller.service_arguments')
+        ->args([
+            '$signingSecret' => '%kerrialnewham.autocomplete.signing_secret%',
+        ]);
 
     $services->set(CountryProvider::class)
         ->autowire()

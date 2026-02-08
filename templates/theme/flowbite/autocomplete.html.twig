@@ -21,6 +21,15 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
+{% set sig = autocomplete_sig(
+    'autocomplete_search',
+    provider,
+    theme_name,
+    td is same as(false) ? '' : td,
+    autocomplete_choice_label is defined ? autocomplete_choice_label : '',
+    autocomplete_choice_value is defined ? autocomplete_choice_value : ''
+) %}
+
 {% set url_value = path('autocomplete_search', { provider: provider, theme: theme_name }) %}
 {% if td is not same as(false) and td is not null and td is not empty %}
     {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'translation_domain=' ~ td|url_encode %}
@@ -31,6 +40,8 @@
 {% if autocomplete_choice_value is defined and autocomplete_choice_value %}
     {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'choice_value=' ~ autocomplete_choice_value|url_encode %}
 {% endif %}
+
+{% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
 
 <div class="relative"
      data-autocomplete-theme="{{ theme_name }}"
