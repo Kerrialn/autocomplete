@@ -3,222 +3,279 @@
 namespace Kerrialnewham\Autocomplete\Provider\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
-class DoctrineEntityProvider implements AutocompleteProviderInterface, ChipProviderInterface
+final class DoctrineEntityProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
-    private readonly PropertyAccessorInterface $propertyAccessor;
-    private readonly mixed $queryBuilder;
-    private readonly mixed $choiceLabel;
-    private readonly mixed $choiceValue;
-
     public function __construct(
         private readonly ManagerRegistry $registry,
         private readonly string $class,
         private readonly string $providerName,
-        ?callable $queryBuilder = null,
-        string|callable|null $choiceLabel = null,
-        string|callable|null $choiceValue = null,
-    ) {
-        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->queryBuilder = $queryBuilder;
-        $this->choiceLabel = $choiceLabel;
-        $this->choiceValue = $choiceValue;
-    }
+        private readonly callable $queryBuilder = null,
+        private readonly string|callable|null $choiceLabel = null,
+        private readonly string|callable|null $choiceValue = null,
+    ) {}
 
     public function getName(): string
     {
         return $this->providerName;
     }
 
-    public function search(string $query, int $limit, array $selected): array
+    public function search(string $query, int $limit = 10, array $selected = []): array
     {
-        $em = $this->getEntityManager();
-        $qb = $this->createQueryBuilder($em);
+        $em = $this->getEm();
+        $repo = $this->getRepo($em);
 
-        // Apply search filter
-        $this->applySearchFilter($qb, $query);
+        $qb = $this->createBaseQb($repo);
+        $root = $qb->getRootAliases()[0] ?? 'e';
 
-        // Filter out selected items
-        if (!empty($selected)) {
-            $idProperty = $this->getIdProperty();
-            $qb->andWhere(sprintf('e.%s NOT IN (:selected)', $idProperty))
-                ->setParameter('selected', $selected);
+        $query = trim($query);
+
+        // Apply keyword filter against choice_label when it's a string (e.g. "title")
+        if ($query !== '' && is_string($this->choiceLabel) && $this->choiceLabel !== '') {
+            $fieldRef = $this->resolveDqlPath($qb, $root, $this->choiceLabel);
+            $qb
+                ->andWhere(sprintf('LOWER(%s) LIKE :q', $fieldRef))
+                ->setParameter('q', '%' . mb_strtolower($query) . '%');
         }
 
-        // Apply limit
+        // Exclude already selected values (works when choice_value is a string field/path)
+        if (!empty($selected) && is_string($this->choiceValue) && $this->choiceValue !== '') {
+            $valueRef = $this->resolveDqlPath($qb, $root, $this->choiceValue);
+            $qb
+                ->andWhere($qb->expr()->notIn($valueRef, ':selected'))
+                ->setParameter('selected', array_values($selected));
+        } elseif (!empty($selected)) {
+            // best-effort: exclude by single identifier (common case)
+            $ids = $this->getSingleIdentifierField($em);
+            if ($ids !== null) {
+                $qb
+                    ->andWhere($qb->expr()->notIn($root . '.' . $ids, ':selected'))
+                    ->setParameter('selected', array_values($selected));
+            }
+        }
+
         $qb->setMaxResults($limit);
 
         $entities = $qb->getQuery()->getResult();
 
-        return array_map(fn($entity) => $this->transformEntity($entity), $entities);
+        $out = [];
+        foreach ($entities as $entity) {
+            $out[] = $this->normalize($entity, $em);
+        }
+
+        return $out;
     }
 
     public function get(string $id): ?array
     {
-        $em = $this->getEntityManager();
-        $repository = $em->getRepository($this->class);
+        $em = $this->getEm();
+        $repo = $this->getRepo($em);
 
-        $idProperty = $this->getIdProperty();
-        $entity = null;
-
-        if ($idProperty === 'id') {
-            $entity = $repository->find($id);
-        } else {
-            $entity = $repository->findOneBy([$idProperty => $id]);
+        // Fast path: single identifier
+        $idField = $this->getSingleIdentifierField($em);
+        if ($idField !== null) {
+            $entity = $repo->find($id);
+            if ($entity) {
+                return $this->normalize($entity, $em);
+            }
         }
 
-        if ($entity === null) {
-            return null;
+        // Otherwise query by choice_value string field/path if available
+        if (is_string($this->choiceValue) && $this->choiceValue !== '') {
+            $qb = $this->createBaseQb($repo);
+            $root = $qb->getRootAliases()[0] ?? 'e';
+
+            $valueRef = $this->resolveDqlPath($qb, $root, $this->choiceValue);
+
+            $entity = $qb
+                ->andWhere($qb->expr()->eq($valueRef, ':id'))
+                ->setParameter('id', $id)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $entity ? $this->normalize($entity, $em) : null;
         }
 
-        return $this->transformEntity($entity);
+        return null;
     }
 
-    private function createQueryBuilder(EntityManagerInterface $em): QueryBuilder
+    private function createBaseQb(EntityRepository $repo): QueryBuilder
     {
         if ($this->queryBuilder !== null) {
-            $qb = ($this->queryBuilder)($em->getRepository($this->class));
-
-            if (!$qb instanceof QueryBuilder) {
-                throw new \RuntimeException(
-                    sprintf('The query_builder option must return a QueryBuilder instance, got "%s".', get_debug_type($qb))
-                );
+            // Symfony EntityType's query_builder signature: fn(EntityRepository $repo): QueryBuilder
+            $qb = ($this->queryBuilder)($repo);
+            if ($qb instanceof QueryBuilder) {
+                return $qb;
             }
-
-            return $qb;
         }
 
-        // Default query builder
-        return $em->getRepository($this->class)->createQueryBuilder('e');
+        return $repo->createQueryBuilder('e');
     }
 
-    private function applySearchFilter(QueryBuilder $qb, string $query): void
+    private function normalize(object $entity, EntityManagerInterface $em): array
     {
-        if ($query === '') {
-            return;
-        }
+        $id = $this->readChoiceValue($entity, $em);
+        $label = $this->readChoiceLabel($entity);
 
-        $labelProperty = $this->getLabelProperty();
-
-        if ($labelProperty === null) {
-            // If no label property can be determined, search on all string fields (best effort)
-            // This is a fallback for entities with __toString() or callable choice_label
-            return;
-        }
-
-        // Apply LIKE search on label property
-        $qb->andWhere(sprintf('LOWER(e.%s) LIKE :query', $labelProperty))
-            ->setParameter('query', '%' . strtolower($query) . '%');
-    }
-
-    private function transformEntity(object $entity): array
-    {
         return [
-            'id' => $this->extractId($entity),
-            'label' => $this->extractLabel($entity),
-            'meta' => $this->extractMeta($entity),
+            'id' => (string) $id,
+            'label' => (string) $label,
         ];
     }
 
-    private function extractId(object $entity): string
-    {
-        if (is_callable($this->choiceValue)) {
-            return (string) ($this->choiceValue)($entity);
-        }
-
-        $property = $this->choiceValue ?? 'id';
-
-        try {
-            return (string) $this->propertyAccessor->getValue($entity, $property);
-        } catch (\Exception $e) {
-            throw new \RuntimeException(
-                sprintf('Could not extract ID from entity "%s" using property "%s": %s', $this->class, $property, $e->getMessage())
-            );
-        }
-    }
-
-    private function extractLabel(object $entity): string
+    private function readChoiceLabel(object $entity): string
     {
         if (is_callable($this->choiceLabel)) {
             return (string) ($this->choiceLabel)($entity);
         }
 
-        if (is_string($this->choiceLabel)) {
-            try {
-                return (string) $this->propertyAccessor->getValue($entity, $this->choiceLabel);
-            } catch (\Exception $e) {
-                throw new \RuntimeException(
-                    sprintf('Could not extract label from entity "%s" using property "%s": %s', $this->class, $this->choiceLabel, $e->getMessage())
-                );
-            }
+        if (is_string($this->choiceLabel) && $this->choiceLabel !== '') {
+            $v = $this->readPropertyPath($entity, $this->choiceLabel);
+            return $v === null ? '' : (string) $v;
         }
 
-        // Fallback 1: Try __toString()
         if (method_exists($entity, '__toString')) {
             return (string) $entity;
         }
 
-        // Fallback 2: Try common property names
-        $commonProperties = ['name', 'title', 'label', 'displayName', 'fullName', 'username', 'email'];
-        foreach ($commonProperties as $property) {
-            try {
-                if ($this->propertyAccessor->isReadable($entity, $property)) {
-                    $value = $this->propertyAccessor->getValue($entity, $property);
-                    if ($value !== null && $value !== '') {
-                        return (string) $value;
-                    }
-                }
-            } catch (\Exception $e) {
-                // Try next property
-                continue;
+        return '';
+    }
+
+    private function readChoiceValue(object $entity, EntityManagerInterface $em): string
+    {
+        if (is_callable($this->choiceValue)) {
+            return (string) ($this->choiceValue)($entity);
+        }
+
+        if (is_string($this->choiceValue) && $this->choiceValue !== '') {
+            $v = $this->readPropertyPath($entity, $this->choiceValue);
+            if ($v !== null && $v !== '') {
+                return (string) $v;
             }
         }
 
-        // Last resort: Show class name + ID
-        return sprintf('%s #%s', (new \ReflectionClass($entity))->getShortName(), $this->extractId($entity));
-    }
+        // fallback: Doctrine identifier
+        $meta = $em->getClassMetadata($this->class);
+        $ids = $meta->getIdentifierValues($entity);
 
-    private function extractMeta(object $entity): array
-    {
-        // Default: no metadata
-        // Developers can override by creating custom providers
-        return [];
-    }
-
-    private function getIdProperty(): string
-    {
-        if (is_callable($this->choiceValue)) {
-            return 'id'; // Fallback for callables
+        if (count($ids) === 1) {
+            return (string) array_values($ids)[0];
         }
 
-        return $this->choiceValue ?? 'id';
+        // composite id fallback
+        return (string) json_encode($ids);
     }
 
-    private function getLabelProperty(): ?string
+    private function readPropertyPath(object $obj, string $path): mixed
     {
-        if (is_callable($this->choiceLabel)) {
-            return null; // Can't determine property for callables
+        $parts = explode('.', $path);
+        $current = $obj;
+
+        foreach ($parts as $part) {
+            if ($current === null) {
+                return null;
+            }
+
+            $getter = 'get' . ucfirst($part);
+            $isser = 'is' . ucfirst($part);
+            $hasser = 'has' . ucfirst($part);
+
+            if (is_object($current) && method_exists($current, $getter)) {
+                $current = $current->{$getter}();
+                continue;
+            }
+            if (is_object($current) && method_exists($current, $isser)) {
+                $current = $current->{$isser}();
+                continue;
+            }
+            if (is_object($current) && method_exists($current, $hasser)) {
+                $current = $current->{$hasser}();
+                continue;
+            }
+            if (is_object($current) && property_exists($current, $part)) {
+                $current = $current->{$part};
+                continue;
+            }
+
+            return null;
         }
 
-        return $this->choiceLabel;
+        return $current;
     }
 
-    private function getEntityManager(): EntityManagerInterface
+    /**
+     * Converts a property path like "title" or "parent.title" into a DQL ref.
+     * Joins associations for dotted paths.
+     */
+    private function resolveDqlPath(QueryBuilder $qb, string $rootAlias, string $propertyPath): string
+    {
+        $parts = explode('.', $propertyPath);
+
+        if (count($parts) === 1) {
+            return $rootAlias . '.' . $parts[0];
+        }
+
+        $alias = $rootAlias;
+        $joins = $qb->getDQLPart('join') ?? [];
+
+        for ($i = 0; $i < count($parts) - 1; $i++) {
+            $assoc = $parts[$i];
+            $joinExpr = $alias . '.' . $assoc;
+
+            $nextAlias = $alias . '_' . $assoc;
+
+            // only add join once
+            $already = false;
+            if (isset($joins[$alias])) {
+                foreach ($joins[$alias] as $j) {
+                    if ($j->getJoin() === $joinExpr && $j->getAlias() === $nextAlias) {
+                        $already = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$already) {
+                $qb->leftJoin($joinExpr, $nextAlias);
+                $qb->addSelect($nextAlias);
+                // refresh joins cache for subsequent checks
+                $joins = $qb->getDQLPart('join') ?? [];
+            }
+
+            $alias = $nextAlias;
+        }
+
+        return $alias . '.' . $parts[count($parts) - 1];
+    }
+
+    private function getEm(): EntityManagerInterface
     {
         $em = $this->registry->getManagerForClass($this->class);
-
-        if ($em === null) {
-            throw new \RuntimeException(
-                sprintf('No entity manager found for class "%s".', $this->class)
-            );
+        if (!$em instanceof EntityManagerInterface) {
+            throw new \LogicException(sprintf('No Doctrine ORM EntityManager found for "%s".', $this->class));
         }
-
         return $em;
+    }
+
+    private function getRepo(EntityManagerInterface $em): EntityRepository
+    {
+        $repo = $em->getRepository($this->class);
+        if (!$repo instanceof EntityRepository) {
+            throw new \LogicException(sprintf('Repository for "%s" is not an EntityRepository.', $this->class));
+        }
+        return $repo;
+    }
+
+    private function getSingleIdentifierField(EntityManagerInterface $em): ?string
+    {
+        $meta = $em->getClassMetadata($this->class);
+        $ids = $meta->getIdentifierFieldNames();
+        return count($ids) === 1 ? $ids[0] : null;
     }
 }
