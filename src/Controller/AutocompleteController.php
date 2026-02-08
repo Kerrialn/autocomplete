@@ -21,7 +21,7 @@ final class AutocompleteController extends AbstractController
         private readonly ProviderRegistry $providerRegistry,
         private readonly TemplateResolver $templates,
         private readonly ?EntityProviderFactory $entityProviderFactory = null,
-        private readonly string $signingSecret = '', // inject a secret (see below)
+        private readonly string $signingSecret = '',
     ) {}
 
     #[Route('/_autocomplete/{provider}', name: 'autocomplete_search', methods: ['GET'])]

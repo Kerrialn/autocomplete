@@ -2,7 +2,6 @@
 
 namespace Kerrialnewham\Autocomplete\Twig\Extension;
 
-use Kerrialnewham\Autocomplete\Security\AutocompleteSigner;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -10,7 +9,7 @@ use Twig\TwigFunction;
 final class AutocompleteTwigExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly AutocompleteSigner $signer,
+        private readonly string $signingSecret,
         private readonly Security $security,
     ) {}
 
@@ -30,16 +29,28 @@ final class AutocompleteTwigExtension extends AbstractExtension
         ?string $choiceLabel,
         ?string $choiceValue,
     ): array {
+        $ts = time();
+
+        $td = (string) ($translationDomain ?? '');
+        $cl = (string) ($choiceLabel ?? '');
+        $cv = (string) ($choiceValue ?? '');
+
         $userId = $this->security->getUser()?->getUserIdentifier() ?? '';
 
-        return $this->signer->sign(
-            routeName: $routeName,
-            provider: $provider,
-            theme: $theme,
-            translationDomain: (string) ($translationDomain ?? ''),
-            choiceLabel: (string) ($choiceLabel ?? ''),
-            choiceValue: (string) ($choiceValue ?? ''),
-            userId: $userId,
-        );
+        $payload = implode('|', [
+            $routeName,
+            $provider,
+            $theme,
+            $td,
+            $cl,
+            $cv,
+            $userId,
+            (string) $ts,
+        ]);
+
+        return [
+            'ts' => $ts,
+            'sig' => hash_hmac('sha256', $payload, $this->signingSecret),
+        ];
     }
 }

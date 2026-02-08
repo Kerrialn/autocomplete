@@ -34,18 +34,13 @@ return static function (ContainerConfigurator $container): void {
     // Signing secret param (must be set in host app env)
     $container->parameters()->set('kerrialnewham.autocomplete.signing_secret', env('APP_SECRET'));
 
-    // Signer
-    $services->set(AutocompleteSigner::class)
-        ->args([
-            '$secret' => '%kerrialnewham.autocomplete.signing_secret%',
-        ]);
 
     // Twig function: autocomplete_sig(...)
     // (requires SecurityBundle)
     $services->set(AutocompleteTwigExtension::class)
         ->args([
-            service(AutocompleteSigner::class),
-            service(Security::class),
+            '$signingSecret' => '%kerrialnewham.autocomplete.signing_secret%',
+            '$security' => service(Security::class),
         ])
         ->tag('twig.extension');
 
