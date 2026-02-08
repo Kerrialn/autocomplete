@@ -11,14 +11,43 @@ use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
 
 final class DoctrineEntityProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
+    private ?\Closure $queryBuilderFactory = null;
+
+    private ?string $choiceLabelPath = null;
+    private ?\Closure $choiceLabelFn = null;
+
+    private ?string $choiceValuePath = null;
+    private ?\Closure $choiceValueFn = null;
+
+    /**
+     * @param mixed $queryBuilder  Expected: null or closure/fn(EntityRepository): QueryBuilder
+     * @param mixed $choiceLabel   Expected: null or string property path or closure/fn(object): string
+     * @param mixed $choiceValue   Expected: null or string property path or closure/fn(object): string
+     */
     public function __construct(
         private readonly ManagerRegistry $registry,
         private readonly string $class,
         private readonly string $providerName,
-        private readonly callable $queryBuilder,
-        private readonly string|callable|null $choiceLabel = null,
-        private readonly string|callable|null $choiceValue = null,
-    ) {}
+        mixed $queryBuilder = null,
+        mixed $choiceLabel = null,
+        mixed $choiceValue = null,
+    ) {
+        if ($queryBuilder !== null) {
+            $this->queryBuilderFactory = \Closure::fromCallable($queryBuilder);
+        }
+
+        if (is_string($choiceLabel) && $choiceLabel !== '') {
+            $this->choiceLabelPath = $choiceLabel;
+        } elseif ($choiceLabel !== null && is_callable($choiceLabel)) {
+            $this->choiceLabelFn = \Closure::fromCallable($choiceLabel);
+        }
+
+        if (is_string($choiceValue) && $choiceValue !== '') {
+            $this->choiceValuePath = $choiceValue;
+        } elseif ($choiceValue !== null && is_callable($choiceValue)) {
+            $this->choiceValueFn = \Closure::fromCallable($choiceValue);
+        }
+    }
 
     public function getName(): string
     {
@@ -35,28 +64,37 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
 
         $query = trim($query);
 
-        // Apply keyword filter against choice_label when it's a string (e.g. "title")
-        if ($query !== '' && is_string($this->choiceLabel) && $this->choiceLabel !== '') {
-            $fieldRef = $this->resolveDqlPath($qb, $root, $this->choiceLabel);
+        // ✅ keyword filter (LIKE %query%) uses the string choice_label path (e.g. "title")
+        if ($query !== '' && $this->choiceLabelPath !== null) {
+            $fieldRef = $this->resolveDqlPath($qb, $root, $this->choiceLabelPath);
+
             $qb
                 ->andWhere(sprintf('LOWER(%s) LIKE :q', $fieldRef))
-                ->setParameter('q', '%' . mb_strtolower($query) . '%');
+                ->setParameter('q', '%' . $this->lower($query) . '%');
         }
 
-        // Exclude already selected values (works when choice_value is a string field/path)
-        if (!empty($selected) && is_string($this->choiceValue) && $this->choiceValue !== '') {
-            $valueRef = $this->resolveDqlPath($qb, $root, $this->choiceValue);
-            $qb
-                ->andWhere($qb->expr()->notIn($valueRef, ':selected'))
-                ->setParameter('selected', array_values($selected));
-        } elseif (!empty($selected)) {
-            // best-effort: exclude by single identifier (common case)
-            $ids = $this->getSingleIdentifierField($em);
-            if ($ids !== null) {
+        // Exclude selected (prefer choice_value path; fallback to primary id)
+        if (!empty($selected)) {
+            $selected = array_values($selected);
+
+            if ($this->choiceValuePath !== null) {
+                $valueRef = $this->resolveDqlPath($qb, $root, $this->choiceValuePath);
                 $qb
-                    ->andWhere($qb->expr()->notIn($root . '.' . $ids, ':selected'))
-                    ->setParameter('selected', array_values($selected));
+                    ->andWhere($qb->expr()->notIn($valueRef, ':selected'))
+                    ->setParameter('selected', $selected);
+            } else {
+                $idField = $this->getSingleIdentifierField($em);
+                if ($idField !== null) {
+                    $qb
+                        ->andWhere($qb->expr()->notIn($root . '.' . $idField, ':selected'))
+                        ->setParameter('selected', $selected);
+                }
             }
+        }
+
+        // Optional: stable ordering by choiceLabelPath (if available)
+        if ($this->choiceLabelPath !== null) {
+            $qb->addOrderBy($this->resolveDqlPath($qb, $root, $this->choiceLabelPath), 'ASC');
         }
 
         $qb->setMaxResults($limit);
@@ -76,21 +114,18 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         $em = $this->getEm();
         $repo = $this->getRepo($em);
 
-        // Fast path: single identifier
-        $idField = $this->getSingleIdentifierField($em);
-        if ($idField !== null) {
-            $entity = $repo->find($id);
-            if ($entity) {
-                return $this->normalize($entity, $em);
-            }
+        // Fast path: entity primary key
+        $entity = $repo->find($id);
+        if ($entity) {
+            return $this->normalize($entity, $em);
         }
 
-        // Otherwise query by choice_value string field/path if available
-        if (is_string($this->choiceValue) && $this->choiceValue !== '') {
+        // If choiceValuePath is a non-PK field, query by it
+        if ($this->choiceValuePath !== null) {
             $qb = $this->createBaseQb($repo);
             $root = $qb->getRootAliases()[0] ?? 'e';
 
-            $valueRef = $this->resolveDqlPath($qb, $root, $this->choiceValue);
+            $valueRef = $this->resolveDqlPath($qb, $root, $this->choiceValuePath);
 
             $entity = $qb
                 ->andWhere($qb->expr()->eq($valueRef, ':id'))
@@ -107,9 +142,8 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
 
     private function createBaseQb(EntityRepository $repo): QueryBuilder
     {
-        if ($this->queryBuilder !== null) {
-            // Symfony EntityType's query_builder signature: fn(EntityRepository $repo): QueryBuilder
-            $qb = ($this->queryBuilder)($repo);
+        if ($this->queryBuilderFactory !== null) {
+            $qb = ($this->queryBuilderFactory)($repo);
             if ($qb instanceof QueryBuilder) {
                 return $qb;
             }
@@ -120,47 +154,39 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
 
     private function normalize(object $entity, EntityManagerInterface $em): array
     {
-        $id = $this->readChoiceValue($entity, $em);
-        $label = $this->readChoiceLabel($entity);
-
         return [
-            'id' => (string) $id,
-            'label' => (string) $label,
+            'id' => (string) $this->readChoiceValue($entity, $em),
+            'label' => (string) $this->readChoiceLabel($entity),
         ];
     }
 
     private function readChoiceLabel(object $entity): string
     {
-        if (is_callable($this->choiceLabel)) {
-            return (string) ($this->choiceLabel)($entity);
+        if ($this->choiceLabelFn !== null) {
+            return (string) ($this->choiceLabelFn)($entity);
         }
 
-        if (is_string($this->choiceLabel) && $this->choiceLabel !== '') {
-            $v = $this->readPropertyPath($entity, $this->choiceLabel);
+        if ($this->choiceLabelPath !== null) {
+            $v = $this->readPropertyPath($entity, $this->choiceLabelPath);
             return $v === null ? '' : (string) $v;
         }
 
-        if (method_exists($entity, '__toString')) {
-            return (string) $entity;
-        }
-
-        return '';
+        return method_exists($entity, '__toString') ? (string) $entity : '';
     }
 
     private function readChoiceValue(object $entity, EntityManagerInterface $em): string
     {
-        if (is_callable($this->choiceValue)) {
-            return (string) ($this->choiceValue)($entity);
+        if ($this->choiceValueFn !== null) {
+            return (string) ($this->choiceValueFn)($entity);
         }
 
-        if (is_string($this->choiceValue) && $this->choiceValue !== '') {
-            $v = $this->readPropertyPath($entity, $this->choiceValue);
+        if ($this->choiceValuePath !== null) {
+            $v = $this->readPropertyPath($entity, $this->choiceValuePath);
             if ($v !== null && $v !== '') {
                 return (string) $v;
             }
         }
 
-        // fallback: Doctrine identifier
         $meta = $em->getClassMetadata($this->class);
         $ids = $meta->getIdentifierValues($entity);
 
@@ -168,7 +194,6 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
             return (string) array_values($ids)[0];
         }
 
-        // composite id fallback
         return (string) json_encode($ids);
     }
 
@@ -183,7 +208,7 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
             }
 
             $getter = 'get' . ucfirst($part);
-            $isser = 'is' . ucfirst($part);
+            $isser  = 'is' . ucfirst($part);
             $hasser = 'has' . ucfirst($part);
 
             if (is_object($current) && method_exists($current, $getter)) {
@@ -210,8 +235,8 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
     }
 
     /**
-     * Converts a property path like "title" or "parent.title" into a DQL ref.
-     * Joins associations for dotted paths.
+     * "title" -> "e.title"
+     * "parent.title" -> joins e.parent as e_parent and returns "e_parent.title"
      */
     private function resolveDqlPath(QueryBuilder $qb, string $rootAlias, string $propertyPath): string
     {
@@ -222,16 +247,15 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         }
 
         $alias = $rootAlias;
-        $joins = $qb->getDQLPart('join') ?? [];
 
         for ($i = 0; $i < count($parts) - 1; $i++) {
             $assoc = $parts[$i];
             $joinExpr = $alias . '.' . $assoc;
-
             $nextAlias = $alias . '_' . $assoc;
 
-            // only add join once
             $already = false;
+            $joins = $qb->getDQLPart('join');
+
             if (isset($joins[$alias])) {
                 foreach ($joins[$alias] as $j) {
                     if ($j->getJoin() === $joinExpr && $j->getAlias() === $nextAlias) {
@@ -243,15 +267,17 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
 
             if (!$already) {
                 $qb->leftJoin($joinExpr, $nextAlias);
-                $qb->addSelect($nextAlias);
-                // refresh joins cache for subsequent checks
-                $joins = $qb->getDQLPart('join') ?? [];
             }
 
             $alias = $nextAlias;
         }
 
         return $alias . '.' . $parts[count($parts) - 1];
+    }
+
+    private function lower(string $s): string
+    {
+        return function_exists('mb_strtolower') ? mb_strtolower($s) : strtolower($s);
     }
 
     private function getEm(): EntityManagerInterface
