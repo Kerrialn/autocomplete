@@ -1,11 +1,22 @@
 {% set attr = attr|default({}) %}
 {% set provider = provider ?? 'MISSING_PROVIDER' %}
 {% set multiple = multiple|default(false) %}
-{% set placeholder = placeholder|default('Search...') %}
 {% set min_chars = min_chars|default(1) %}
 {% set debounce = debounce|default(300) %}
 {% set limit = limit|default(10) %}
 {% set theme_name = theme ?? 'default' %}
+
+{% set placeholder_text = placeholder %}
+{% if td is same as(false) %}
+    {# no translation #}
+    {% set placeholder_text = placeholder %}
+{% elseif td is null %}
+    {# default domain (messages) #}
+    {% set placeholder_text = placeholder|trans(tp) %}
+{% else %}
+    {# explicit domain #}
+    {% set placeholder_text = placeholder|trans(tp, td) %}
+{% endif %}
 
 <div class="autocomplete-wrapper"
      data-autocomplete-theme="{{ theme_name }}"
@@ -35,7 +46,7 @@
     <div class="autocomplete-input-wrapper">
         <input type="text"
                class="autocomplete-input {{ attr.class|default('') }}"
-               placeholder="{{ placeholder }}"
+               placeholder="{{ placeholder_text }}"
                autocomplete="off"
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
                data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
