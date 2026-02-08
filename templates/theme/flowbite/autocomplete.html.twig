@@ -27,6 +27,13 @@
     {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'translation_domain=' ~ td|url_encode %}
 {% endif %}
 
+{% if autocomplete_choice_label is defined and autocomplete_choice_label %}
+    {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'choice_label=' ~ autocomplete_choice_label|url_encode %}
+{% endif %}
+{% if autocomplete_choice_value is defined and autocomplete_choice_value %}
+    {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'choice_value=' ~ autocomplete_choice_value|url_encode %}
+{% endif %}
+
 <div class="autocomplete-wrapper"
      data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"

@@ -35,7 +35,7 @@ class AutocompleteController extends AbstractController
         }
 
         $theme = $this->templates->theme($request->query->get('theme'));
-        $autocompleteProvider = $this->resolveProvider($provider);
+        $autocompleteProvider = $this->resolveProvider($provider, $request);
 
         $results = $autocompleteProvider->search($query, $limit, $selected);
 
@@ -60,7 +60,7 @@ class AutocompleteController extends AbstractController
 
         $inputName = (string) $request->query->get('name', 'autocomplete');
         $theme = $this->templates->theme($request->query->get('theme'));
-        $providerInstance = $this->resolveProvider($provider);
+        $providerInstance = $this->resolveProvider($provider, $request);
 
         if (!$providerInstance instanceof ChipProviderInterface) {
             throw new HttpException(
@@ -86,7 +86,7 @@ class AutocompleteController extends AbstractController
         ]);
     }
 
-    private function resolveProvider(string $providerName): AutocompleteProviderInterface
+    private function resolveProvider(string $providerName, Request $request): AutocompleteProviderInterface
     {
         if ($this->providerRegistry->has($providerName)) {
             return $this->providerRegistry->get($providerName);
@@ -101,14 +101,18 @@ class AutocompleteController extends AbstractController
                 );
             }
 
+            $choiceLabel = (string) $request->query->get('choice_label', '');
+            $choiceValue = (string) $request->query->get('choice_value', '');
+
             return $this->entityProviderFactory->createProvider(
                 class: $entityClass,
                 queryBuilder: null,
-                choiceLabel: null,
-                choiceValue: null,
+                choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
+                choiceValue: $choiceValue !== '' ? $choiceValue : null,
             );
         }
 
         return $this->providerRegistry->get($providerName);
     }
+
 }

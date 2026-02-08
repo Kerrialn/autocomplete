@@ -30,13 +30,9 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
     {
         $resolver->setDefaults([
             'autocomplete' => false,
-
-            // IMPORTANT: make provider optional
             'provider' => null,
 
             'placeholder' => 'Search...',
-            'placeholder_translation_parameters' => [],
-
             'min_chars' => 1,
             'debounce' => 300,
             'limit' => 10,
@@ -46,7 +42,6 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('autocomplete', 'bool');
         $resolver->setAllowedTypes('provider', ['null', 'string']);
         $resolver->setAllowedTypes('placeholder', 'string');
-        $resolver->setAllowedTypes('placeholder_translation_parameters', 'array');
         $resolver->setAllowedTypes('min_chars', 'int');
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
@@ -61,14 +56,12 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         $inner = $builder->getType()->getInnerType();
 
-        // Add EntityToIdentifierTransformer for EntityType with autocomplete
         if ($inner instanceof EntityType && $this->providerFactory !== null) {
             if (!$this->hasEntityTransformer($builder)) {
-                // Extract choice_value if it's a string, otherwise use null (defaults to 'id')
                 $choiceValue = $options['choice_value'] ?? null;
+
+                // if Symfony has already normalized this into an object, ignore it here (transformer uses Doctrine id fallback)
                 if (!is_string($choiceValue) && !is_callable($choiceValue) && $choiceValue !== null) {
-                    // EntityType has already processed choice_value into a ChoiceValue object
-                    // Default to 'id' property
                     $choiceValue = null;
                 }
 
@@ -94,34 +87,44 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         return false;
     }
 
+    private function normalizeChoiceOption(mixed $opt): string|\Closure|null
+    {
+        if (is_string($opt) && $opt !== '') {
+            return $opt;
+        }
+
+        // Symfony often converts "title" into a PropertyPath-like object that stringifies
+        if (is_object($opt) && method_exists($opt, '__toString')) {
+            $s = (string) $opt;
+            if ($s !== '') {
+                return $s;
+            }
+        }
+
+        if ($opt !== null && is_callable($opt)) {
+            return \Closure::fromCallable($opt);
+        }
+
+        return null;
+    }
+
     private function resolveEntityProvider(FormInterface $form, array $options): string
     {
         if ($this->providerFactory === null) {
             throw new \LogicException(
-                'EntityType autocomplete requires Doctrine ORM. ' .
-                'Install: composer require doctrine/orm doctrine/doctrine-bundle'
+                'EntityType autocomplete requires Doctrine ORM. Install: composer require doctrine/orm doctrine/doctrine-bundle'
             );
         }
 
         $class = $options['class'] ?? null;
-
         if (!$class) {
             throw new \InvalidArgumentException('EntityType requires "class" option.');
         }
 
-        // Extract choice_label if it's valid, otherwise use null
-        $choiceLabel = $options['choice_label'] ?? null;
-        if (!is_string($choiceLabel) && !is_callable($choiceLabel) && $choiceLabel !== null) {
-            $choiceLabel = null;
-        }
+        $choiceLabel = $this->normalizeChoiceOption($options['choice_label'] ?? null);
+        $choiceValue = $this->normalizeChoiceOption($options['choice_value'] ?? null);
 
-        // Extract choice_value if it's valid, otherwise use null
-        $choiceValue = $options['choice_value'] ?? null;
-        if (!is_string($choiceValue) && !is_callable($choiceValue) && $choiceValue !== null) {
-            $choiceValue = null;
-        }
-
-        // Get or create auto-generated provider
+        // ProviderFactory signature wants string|callable|null, Closure is callable.
         $provider = $this->providerFactory->createProvider(
             class: $class,
             queryBuilder: $options['query_builder'] ?? null,
@@ -138,12 +141,10 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        // Don't hijack expanded choice (checkboxes/radios)
         if (($view->vars['expanded'] ?? false) === true) {
             return;
         }
 
-        // Resolve provider: explicit > inferred
         $provider = $options['provider'];
 
         if ($provider === null || $provider === '' || $provider === 'default') {
@@ -158,25 +159,23 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         if ($provider === null || $provider === '' || $provider === 'default') {
             throw new \InvalidArgumentException(sprintf(
-                'Autocomplete is enabled but no provider could be resolved for field "%s" (type: %s). ' .
-                'Either set the "provider" option explicitly or add an inference rule.',
+                'Autocomplete is enabled but no provider could be resolved for field "%s".',
                 $view->vars['full_name'] ?? '(unknown)',
-                $form->getConfig()->getType()->getInnerType()::class
             ));
         }
 
         $view->vars['provider'] = $provider;
         $view->vars['placeholder'] = $options['placeholder'];
-        $view->vars['placeholder_translation_parameters'] = $options['placeholder_translation_parameters'];
-
-        // make sure these exist for the template
-        $view->vars['translation_domain'] = $options['translation_domain'] ?? ($view->vars['translation_domain'] ?? null);
-        $view->vars['translation_parameters'] = $options['translation_parameters'] ?? ($view->vars['translation_parameters'] ?? []);
-
         $view->vars['min_chars'] = $options['min_chars'];
         $view->vars['debounce'] = $options['debounce'];
         $view->vars['limit'] = $options['limit'];
         $view->vars['theme'] = $this->templates->theme($options['theme']);
+
+        $cl = $this->normalizeChoiceOption($options['choice_label'] ?? null);
+        $cv = $this->normalizeChoiceOption($options['choice_value'] ?? null);
+
+        $view->vars['autocomplete_choice_label'] = is_string($cl) ? $cl : null;
+        $view->vars['autocomplete_choice_value'] = is_string($cv) ? $cv : null;
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
@@ -189,7 +188,6 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        // Put `autocomplete` where Twig will try it BEFORE country/choice widgets
         $prefixes = $view->vars['block_prefixes'];
         $unique = array_pop($prefixes);
         $prefixes[] = 'autocomplete';
