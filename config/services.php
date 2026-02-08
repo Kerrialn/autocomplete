@@ -32,7 +32,7 @@ return static function (ContainerConfigurator $container): void {
         ]);
 
     // Signing secret param (must be set in host app env)
-    $container->parameters()->set('kerrialnewham.autocomplete.signing_secret', env('AUTOCOMPLETE_SIGNING_SECRET'));
+    $container->parameters()->set('kerrialnewham.autocomplete.signing_secret', env('APP_SECRET'));
 
     // Signer
     $services->set(AutocompleteSigner::class)
