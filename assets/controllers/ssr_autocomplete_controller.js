@@ -245,6 +245,13 @@ export default class extends Controller {
 
             this.chipsContainerTarget.appendChild(chipEl);
 
+            // Dispatch change event on the new hidden input so frameworks
+            // (e.g. Symfony Live Components) detect the added value
+            const hiddenInput = chipEl.querySelector('input[type="hidden"]');
+            if (hiddenInput) {
+                hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
             // Rehydrate selectedItems from server meta if present (server is source of truth)
             const serverMetaJson = chipEl.dataset.autocompleteChipMeta;
             let serverMeta = null;
@@ -314,7 +321,16 @@ export default class extends Controller {
         this.selectedItems.delete(value);
 
         const chip = this.chipTargets.find(c => c.dataset.autocompleteChipValue === value);
-        if (chip) chip.remove();
+        if (chip) {
+            // Dispatch change on the hidden input before removing,
+            // so Live Components detect the removal
+            const hiddenInput = chip.querySelector('input[type="hidden"]');
+            if (hiddenInput) {
+                hiddenInput.value = '';
+                hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            chip.remove();
+        }
 
         this.dispatch('remove', { detail: { value } });
     }
@@ -325,6 +341,9 @@ export default class extends Controller {
 
         if (this.hasSelectedInputTarget) {
             this.selectedInputTarget.value = item.id;
+            // Dispatch change event so frameworks (e.g. Symfony Live Components)
+            // detect the programmatic value change
+            this.selectedInputTarget.dispatchEvent(new Event('change', { bubbles: true }));
         }
     }
 

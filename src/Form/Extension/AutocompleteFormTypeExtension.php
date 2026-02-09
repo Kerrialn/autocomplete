@@ -17,9 +17,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 {
     public function __construct(
-        private readonly TemplateResolver $templates,
+        private readonly TemplateResolver       $templates,
         private readonly ?EntityProviderFactory $providerFactory = null,
-    ) {}
+    )
+    {
+    }
 
     public static function getExtendedTypes(): iterable
     {
@@ -31,8 +33,6 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setDefaults([
             'autocomplete' => false,
             'provider' => null,
-
-            'placeholder' => 'Search...',
             'min_chars' => 1,
             'debounce' => 300,
             'limit' => 10,
@@ -41,7 +41,6 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         $resolver->setAllowedTypes('autocomplete', 'bool');
         $resolver->setAllowedTypes('provider', ['null', 'string']);
-        $resolver->setAllowedTypes('placeholder', 'string');
         $resolver->setAllowedTypes('min_chars', 'int');
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
@@ -64,6 +63,12 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
                 if (!is_string($choiceValue) && !is_callable($choiceValue) && $choiceValue !== null) {
                     $choiceValue = null;
                 }
+
+                // Remove EntityType's built-in ChoiceToValueTransformer.
+                // It depends on a pre-loaded ChoiceList which conflicts with
+                // autocomplete's dynamic AJAX loading and causes failures
+                // when the form is re-submitted (e.g. in Symfony Live Components).
+                $builder->resetViewTransformers();
 
                 $builder->addViewTransformer(
                     new EntityToIdentifierTransformer(
@@ -95,7 +100,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         // Symfony often converts "title" into a PropertyPath-like object that stringifies
         if (is_object($opt) && method_exists($opt, '__toString')) {
-            $s = (string) $opt;
+            $s = (string)$opt;
             if ($s !== '') {
                 return $s;
             }
@@ -165,7 +170,6 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         }
 
         $view->vars['provider'] = $provider;
-        $view->vars['placeholder'] = $options['placeholder'];
         $view->vars['min_chars'] = $options['min_chars'];
         $view->vars['debounce'] = $options['debounce'];
         $view->vars['limit'] = $options['limit'];
