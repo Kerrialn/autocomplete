@@ -4,7 +4,7 @@
 {% set min_chars = min_chars|default(1) %}
 {% set debounce = debounce|default(300) %}
 {% set limit = limit|default(10) %}
-{% set theme_name = theme ?? 'default' %}
+{% set theme_name = theme ?? 'cards' %}
 
 {% set placeholder = placeholder|default('Search...') %}
 
@@ -22,16 +22,38 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
+{% set sig = autocomplete_sig(
+    'autocomplete_search',
+    provider,
+    theme_name,
+    td is same as(false) ? '' : td,
+    autocomplete_choice_label is defined ? autocomplete_choice_label : '',
+    autocomplete_choice_value is defined ? autocomplete_choice_value : ''
+) %}
+
+{% set url_value = path('autocomplete_search', { provider: provider, theme: theme_name }) %}
+{% if td is not same as(false) and td is not null and td is not empty %}
+    {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'translation_domain=' ~ td|url_encode %}
+{% endif %}
+{% if autocomplete_choice_label is defined and autocomplete_choice_label %}
+    {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'choice_label=' ~ autocomplete_choice_label|url_encode %}
+{% endif %}
+{% if autocomplete_choice_value is defined and autocomplete_choice_value %}
+    {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'choice_value=' ~ autocomplete_choice_value|url_encode %}
+{% endif %}
+
+{% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
+
 <div class="autocomplete-wrapper"
      data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
-     data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme ?? 'default' }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme_name }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-multiple-value="{{ multiple ? 'true' : 'false' }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-min-chars-value="{{ min_chars }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-debounce-value="{{ debounce }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-limit-value="{{ limit }}"
-     data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ path('autocomplete_search', { provider: provider, theme: theme ?? 'default' }) }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ url_value }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
 
     {% if multiple %}
@@ -40,7 +62,8 @@
                 {% for item in value %}
                     {% include '@Autocomplete/theme/cards/_chip.html.twig' with {
                         item: item,
-                        name: name
+                        name: name,
+                        translation_domain: td
                     } %}
                 {% endfor %}
             {% endif %}
@@ -51,6 +74,7 @@
         <input type="text"
                class="autocomplete-input {{ attr.class|default('') }}"
                placeholder="{{ placeholder_text }}"
+               {% if not multiple and selected_label is defined and selected_label %}value="{{ selected_label }}"{% endif %}
                autocomplete="off"
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
                data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"

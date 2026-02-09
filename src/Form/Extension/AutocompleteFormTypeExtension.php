@@ -13,6 +13,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 {
@@ -180,6 +181,25 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         $view->vars['autocomplete_choice_label'] = is_string($cl) ? $cl : null;
         $view->vars['autocomplete_choice_value'] = is_string($cv) ? $cv : null;
+
+        // For single-select, resolve the label of the currently selected entity
+        // so the text input can display it after server re-renders (e.g. Live Components).
+        $view->vars['selected_label'] = null;
+        $multiple = $options['multiple'] ?? false;
+        if (!$multiple) {
+            $normData = $form->getNormData();
+            if ($normData !== null && is_object($normData)) {
+                try {
+                    if (is_string($cl) && $cl !== '') {
+                        $view->vars['selected_label'] = (string) PropertyAccess::createPropertyAccessor()->getValue($normData, $cl);
+                    } elseif (method_exists($normData, '__toString')) {
+                        $view->vars['selected_label'] = (string) $normData;
+                    }
+                } catch (\Exception) {
+                    // Silently ignore if property is not accessible
+                }
+            }
+        }
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void

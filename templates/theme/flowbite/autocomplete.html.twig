@@ -74,6 +74,7 @@
         <input type="text"
                class="form-control {{ attr.class|default('') }}"
                placeholder="{{ placeholder_text }}"
+               {% if not multiple and selected_label is defined and selected_label %}value="{{ selected_label }}"{% endif %}
                autocomplete="off"
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
                data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
