@@ -43,7 +43,7 @@
 
 {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
 
-<div class="relative"
+<div class="relative w-full"
      data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
      data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme_name }}"
@@ -85,7 +85,7 @@
         >
 
         <div
-                class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none leading-none"
+                class="absolute inset-y-0 right-3 flex items-center pointer-events-none"
                 data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading"
                 style="display: none;"
         >
