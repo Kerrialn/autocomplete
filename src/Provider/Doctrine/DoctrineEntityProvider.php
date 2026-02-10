@@ -15,6 +15,7 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
 
     private ?string $choiceLabelPath = null;
     private ?\Closure $choiceLabelFn = null;
+    private ?string $detectedLabelPath = null;
 
     private ?string $choiceValuePath = null;
     private ?\Closure $choiceValueFn = null;
@@ -63,10 +64,11 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         $root = $qb->getRootAliases()[0] ?? 'e';
 
         $query = trim($query);
+        $labelPath = $this->getEffectiveLabelPath($em);
 
-        // ✅ keyword filter (LIKE %query%) uses the string choice_label path (e.g. "title")
-        if ($query !== '' && $this->choiceLabelPath !== null) {
-            $fieldRef = $this->resolveDqlPath($qb, $root, $this->choiceLabelPath);
+        // keyword filter (LIKE %query%) uses the string choice_label path (e.g. "title")
+        if ($query !== '' && $labelPath !== null) {
+            $fieldRef = $this->resolveDqlPath($qb, $root, $labelPath);
 
             $qb
                 ->andWhere(sprintf('LOWER(%s) LIKE :q', $fieldRef))
@@ -92,9 +94,9 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
             }
         }
 
-        // Optional: stable ordering by choiceLabelPath (if available)
-        if ($this->choiceLabelPath !== null) {
-            $qb->addOrderBy($this->resolveDqlPath($qb, $root, $this->choiceLabelPath), 'ASC');
+        // Stable ordering by label path (if available)
+        if ($labelPath !== null) {
+            $qb->addOrderBy($this->resolveDqlPath($qb, $root, $labelPath), 'ASC');
         }
 
         $qb->setMaxResults($limit);
@@ -171,7 +173,18 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
             return $v === null ? '' : (string) $v;
         }
 
-        return method_exists($entity, '__toString') ? (string) $entity : '';
+        if (method_exists($entity, '__toString')) {
+            return (string) $entity;
+        }
+
+        // Auto-detect a string column from Doctrine metadata
+        $labelPath = $this->getEffectiveLabelPath($this->getEm());
+        if ($labelPath !== null) {
+            $v = $this->readPropertyPath($entity, $labelPath);
+            return $v === null ? '' : (string) $v;
+        }
+
+        return '';
     }
 
     private function readChoiceValue(object $entity, EntityManagerInterface $em): string
@@ -273,6 +286,59 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         }
 
         return $alias . '.' . $parts[count($parts) - 1];
+    }
+
+    /**
+     * Returns the label column path to use for searching/ordering.
+     * If choiceLabelPath is set, returns that. Otherwise auto-detects
+     * a suitable string column from Doctrine metadata (prefers name/title/label).
+     */
+    private function getEffectiveLabelPath(EntityManagerInterface $em): ?string
+    {
+        if ($this->choiceLabelPath !== null) {
+            return $this->choiceLabelPath;
+        }
+
+        // If a closure is set, we can't derive a DQL path from it
+        if ($this->choiceLabelFn !== null) {
+            return null;
+        }
+
+        if ($this->detectedLabelPath !== null) {
+            return $this->detectedLabelPath;
+        }
+
+        try {
+            $meta = $em->getClassMetadata($this->class);
+        } catch (\Exception) {
+            return null;
+        }
+
+        $preferred = ['name', 'title', 'label'];
+        $firstString = null;
+
+        foreach ($meta->getFieldNames() as $field) {
+            $type = $meta->getTypeOfField($field);
+            if (!\in_array($type, ['string', 'text'], true)) {
+                continue;
+            }
+
+            if ($firstString === null) {
+                $firstString = $field;
+            }
+
+            if (\in_array($field, $preferred, true)) {
+                $this->detectedLabelPath = $field;
+                return $this->detectedLabelPath;
+            }
+        }
+
+        if ($firstString !== null) {
+            $this->detectedLabelPath = $firstString;
+            return $this->detectedLabelPath;
+        }
+
+        return null;
     }
 
     private function lower(string $s): string

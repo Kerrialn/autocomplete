@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AutocompleteController extends AbstractController
 {
@@ -23,6 +24,7 @@ final class AutocompleteController extends AbstractController
         private readonly TemplateResolver $templates,
         private readonly ?EntityProviderFactory $entityProviderFactory = null,
         private readonly string $signingSecret = '',
+        private readonly ?TranslatorInterface $translator = null,
     ) {}
 
     #[Route('/_autocomplete/{provider}', name: 'autocomplete_search', methods: ['GET'])]
@@ -128,11 +130,17 @@ final class AutocompleteController extends AbstractController
             }
 
             $choiceLabel = (string) $request->query->get('choice_label', '');
+            $translationDomain = $request->query->get('translation_domain');
+            if ($translationDomain === '') {
+                $translationDomain = null;
+            }
 
             return new EnumProvider(
                 enumClass: $enumClass,
                 providerName: $providerName,
                 choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
+                translator: $translationDomain !== null ? $this->translator : null,
+                translationDomain: $translationDomain,
             );
         }
 

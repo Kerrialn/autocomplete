@@ -93,6 +93,8 @@ class AutocompleteEntityType extends AbstractType
                 try {
                     if (\is_string($cl) && $cl !== '') {
                         $view->vars['selected_label'] = (string) PropertyAccess::createPropertyAccessor()->getValue($normData, $cl);
+                    } elseif ($cl instanceof \Closure) {
+                        $view->vars['selected_label'] = (string) $cl($normData);
                     } elseif (method_exists($normData, '__toString')) {
                         $view->vars['selected_label'] = (string) $normData;
                     }

@@ -18,12 +18,14 @@ use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 {
     public function __construct(
         private readonly TemplateResolver $templates,
         private readonly ProviderRegistry $providerRegistry,
+        private readonly ?TranslatorInterface $translator = null,
     ) {
     }
 
@@ -145,12 +147,18 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 
         $providerName = 'enum.' . $enumClass;
         $choiceLabel = $this->normalizeChoiceOption($options['choice_label'] ?? null);
+        $translationDomain = $options['choice_translation_domain'] ?? $options['translation_domain'] ?? null;
+        if ($translationDomain === false) {
+            $translationDomain = null;
+        }
 
         if (!$this->providerRegistry->has($providerName)) {
             $provider = new EnumProvider(
                 enumClass: $enumClass,
                 providerName: $providerName,
                 choiceLabel: \is_string($choiceLabel) ? $choiceLabel : null,
+                translator: $translationDomain !== null ? $this->translator : null,
+                translationDomain: $translationDomain !== null ? (string) $translationDomain : null,
             );
 
             $this->providerRegistry->register($provider);

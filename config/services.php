@@ -19,6 +19,7 @@ use Kerrialnewham\Autocomplete\Security\AutocompleteSigner;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
 use Kerrialnewham\Autocomplete\Twig\Extension\AutocompleteTwigExtension;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services()
@@ -64,6 +65,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('controller.service_arguments')
         ->args([
             '$signingSecret' => '%kerrialnewham.autocomplete.signing_secret%',
+            '$translator' => service(TranslatorInterface::class)->nullOnInvalid(),
         ]);
 
     // Built-in Symfony Intl providers
@@ -101,6 +103,9 @@ return static function (ContainerConfigurator $container): void {
     // Choice-based types (EnumType, CountryType, LanguageType, LocaleType, CurrencyType, TimezoneType)
     $services->set(AutocompleteChoiceTypeExtension::class)
         ->autowire()
+        ->args([
+            '$translator' => service(TranslatorInterface::class)->nullOnInvalid(),
+        ])
         ->tag('form.type_extension');
 
     // Doctrine entity support (conditional on Doctrine availability)

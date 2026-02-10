@@ -4,6 +4,7 @@ namespace Kerrialnewham\Autocomplete\Provider\Choice;
 
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class EnumProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
@@ -17,6 +18,8 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
         string $enumClass,
         private readonly string $providerName,
         private readonly ?string $choiceLabel = null,
+        private readonly ?TranslatorInterface $translator = null,
+        private readonly ?string $translationDomain = null,
     ) {
         if (!is_subclass_of($enumClass, \BackedEnum::class)) {
             throw new \InvalidArgumentException(sprintf(
@@ -47,7 +50,8 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
             }
 
             $label = $this->resolveLabel($case);
-            $hay = mb_strtolower($label . ' ' . $id);
+            $translatedLabel = $this->translateLabel($label);
+            $hay = mb_strtolower($translatedLabel . ' ' . $label . ' ' . $id);
 
             if ($query === '' || str_contains($hay, $query)) {
                 $results[] = ['id' => $id, 'label' => $label];
@@ -55,14 +59,17 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
         }
 
         usort($results, function (array $a, array $b) use ($query): int {
-            $aStarts = $query !== '' && str_starts_with(mb_strtolower($a['label']), $query);
-            $bStarts = $query !== '' && str_starts_with(mb_strtolower($b['label']), $query);
+            $aTranslated = mb_strtolower($this->translateLabel($a['label']));
+            $bTranslated = mb_strtolower($this->translateLabel($b['label']));
+
+            $aStarts = $query !== '' && str_starts_with($aTranslated, $query);
+            $bStarts = $query !== '' && str_starts_with($bTranslated, $query);
 
             if ($aStarts !== $bStarts) {
                 return $bStarts <=> $aStarts;
             }
 
-            return mb_strtolower($a['label']) <=> mb_strtolower($b['label']);
+            return $aTranslated <=> $bTranslated;
         });
 
         return \array_slice($results, 0, $limit);
@@ -80,6 +87,15 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
         }
 
         return null;
+    }
+
+    private function translateLabel(string $label): string
+    {
+        if ($this->translator === null || $this->translationDomain === null) {
+            return $label;
+        }
+
+        return $this->translator->trans($label, [], $this->translationDomain);
     }
 
     private function resolveLabel(\BackedEnum $case): string
