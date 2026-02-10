@@ -1,18 +1,30 @@
+{% set td = (translation_domain is defined ? translation_domain : null) %}
+{% if td == '' %}{% set td = null %}{% endif %}
+
 {% if results is empty %}
     <div class="autocomplete-empty">No results</div>
 {% else %}
     <ul class="autocomplete-list" role="listbox" aria-label="Autocomplete results">
         {% for item in results %}
+            {% set label_text = item.label %}
+            {% if td is not same as(false) %}
+                {% if td is null %}
+                    {% set label_text = item.label|trans %}
+                {% else %}
+                    {% set label_text = item.label|trans({}, td) %}
+                {% endif %}
+            {% endif %}
+
             <li class="autocomplete-option"
                 role="option"
                 tabindex="-1"
                 data-autocomplete-option-value="{{ item.id }}"
-                data-autocomplete-option-label="{{ item.label }}"
+                data-autocomplete-option-label="{{ label_text|e('html_attr') }}"
                     {% if item.meta is defined %}
                         data-autocomplete-option-meta="{{ item.meta|json_encode|e('html_attr') }}"
                     {% endif %}
             >
-                {{ item.label }}
+                {{ label_text }}
             </li>
         {% endfor %}
     </ul>

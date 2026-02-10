@@ -45,6 +45,14 @@
 
 {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
 
+{% if selected_label is defined and selected_label and td is not same as(false) %}
+    {% if td is null %}
+        {% set selected_label = selected_label|trans %}
+    {% else %}
+        {% set selected_label = selected_label|trans({}, td) %}
+    {% endif %}
+{% endif %}
+
 <div class="position-relative"
      data-autocomplete-theme="{{ theme_name }}"
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
