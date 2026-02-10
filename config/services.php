@@ -4,6 +4,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Kerrialnewham\Autocomplete\Controller\AutocompleteController;
+use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteChoiceTypeExtension;
+use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteEntityTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteFormTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
@@ -20,7 +22,7 @@ return static function (ContainerConfigurator $container): void {
         ->autowire()
         ->autoconfigure();
 
-    // Load all classes from src/ except DI, Tests, and route files
+    // Load all classes from src/ except DI, Tests, route files, and runtime-only providers
     $services->load('Kerrialnewham\\Autocomplete\\', __DIR__.'/../src/')
         ->exclude([
             __DIR__.'/../src/DependencyInjection/',
@@ -28,6 +30,7 @@ return static function (ContainerConfigurator $container): void {
             __DIR__.'/../src/Example/demo_routes.php',
             __DIR__.'/../src/Example/*.md',
             __DIR__.'/../src/Provider/Doctrine/DoctrineEntityProvider.php',
+            __DIR__.'/../src/Provider/Choice/',
             __DIR__.'/../src/Form/DataTransformer/',
         ]);
 
@@ -66,9 +69,13 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(TemplateResolver::class);
 
+    // Shared options (autocomplete, provider, min_chars, etc.) + block prefix injection
     $services->set(AutocompleteFormTypeExtension::class)
+        ->tag('form.type_extension');
+
+    // Choice-based types (EnumType, CountryType)
+    $services->set(AutocompleteChoiceTypeExtension::class)
         ->autowire()
-        ->autoconfigure()
         ->tag('form.type_extension');
 
     // Doctrine entity support (conditional on Doctrine availability)
@@ -79,6 +86,10 @@ return static function (ContainerConfigurator $container): void {
                 service(ManagerRegistry::class),
                 service(ProviderRegistry::class),
             ]);
+
+        $services->set(AutocompleteEntityTypeExtension::class)
+            ->autowire()
+            ->tag('form.type_extension');
 
         $services->set(AutocompleteEntityType::class)
             ->autowire()

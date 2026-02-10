@@ -2,6 +2,7 @@
 
 namespace Kerrialnewham\Autocomplete\Controller;
 
+use Kerrialnewham\Autocomplete\Provider\Choice\EnumProvider;
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
@@ -114,6 +115,24 @@ final class AutocompleteController extends AbstractController
                 queryBuilder: null,
                 choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
                 choiceValue: $choiceValue !== '' ? $choiceValue : null,
+            );
+        }
+
+        if (str_starts_with($providerName, 'enum.')) {
+            $enumClass = substr($providerName, 5);
+
+            if (!enum_exists($enumClass) || !is_subclass_of($enumClass, \BackedEnum::class)) {
+                throw new NotFoundHttpException(
+                    sprintf('Backed enum class "%s" does not exist for provider "%s".', $enumClass, $providerName)
+                );
+            }
+
+            $choiceLabel = (string) $request->query->get('choice_label', '');
+
+            return new EnumProvider(
+                enumClass: $enumClass,
+                providerName: $providerName,
+                choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
             );
         }
 

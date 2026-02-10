@@ -2,28 +2,14 @@
 
 namespace Kerrialnewham\Autocomplete\Form\Extension;
 
-use Kerrialnewham\Autocomplete\Form\DataTransformer\EntityToIdentifierTransformer;
-use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
-use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractTypeExtension;
-use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
-use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\PropertyAccess\PropertyAccess;
 
 final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 {
-    public function __construct(
-        private readonly TemplateResolver       $templates,
-        private readonly ?EntityProviderFactory $providerFactory = null,
-    )
-    {
-    }
-
     public static function getExtendedTypes(): iterable
     {
         return [FormType::class];
@@ -46,160 +32,6 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
         $resolver->setAllowedTypes('theme', ['null', 'string']);
-    }
-
-    public function buildForm(FormBuilderInterface $builder, array $options): void
-    {
-        if (!$options['autocomplete']) {
-            return;
-        }
-
-        $inner = $builder->getType()->getInnerType();
-
-        if ($inner instanceof EntityType && $this->providerFactory !== null) {
-            if (!$this->hasEntityTransformer($builder)) {
-                $choiceValue = $options['choice_value'] ?? null;
-
-                // if Symfony has already normalized this into an object, ignore it here (transformer uses Doctrine id fallback)
-                if (!is_string($choiceValue) && !is_callable($choiceValue) && $choiceValue !== null) {
-                    $choiceValue = null;
-                }
-
-                // Remove EntityType's built-in ChoiceToValueTransformer.
-                // It depends on a pre-loaded ChoiceList which conflicts with
-                // autocomplete's dynamic AJAX loading and causes failures
-                // when the form is re-submitted (e.g. in Symfony Live Components).
-                $builder->resetViewTransformers();
-
-                $builder->addViewTransformer(
-                    new EntityToIdentifierTransformer(
-                        registry: $this->providerFactory->getRegistry(),
-                        class: $options['class'] ?? throw new \InvalidArgumentException('EntityType requires "class" option'),
-                        choiceValue: $choiceValue,
-                        multiple: $options['multiple'] ?? false,
-                    )
-                );
-            }
-        }
-    }
-
-    private function hasEntityTransformer(FormBuilderInterface $builder): bool
-    {
-        foreach ($builder->getViewTransformers() as $transformer) {
-            if ($transformer instanceof EntityToIdentifierTransformer) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function normalizeChoiceOption(mixed $opt): string|\Closure|null
-    {
-        if (is_string($opt) && $opt !== '') {
-            return $opt;
-        }
-
-        // Symfony often converts "title" into a PropertyPath-like object that stringifies
-        if (is_object($opt) && method_exists($opt, '__toString')) {
-            $s = (string)$opt;
-            if ($s !== '') {
-                return $s;
-            }
-        }
-
-        if ($opt !== null && is_callable($opt)) {
-            return \Closure::fromCallable($opt);
-        }
-
-        return null;
-    }
-
-    private function resolveEntityProvider(FormInterface $form, array $options): string
-    {
-        if ($this->providerFactory === null) {
-            throw new \LogicException(
-                'EntityType autocomplete requires Doctrine ORM. Install: composer require doctrine/orm doctrine/doctrine-bundle'
-            );
-        }
-
-        $class = $options['class'] ?? null;
-        if (!$class) {
-            throw new \InvalidArgumentException('EntityType requires "class" option.');
-        }
-
-        $choiceLabel = $this->normalizeChoiceOption($options['choice_label'] ?? null);
-        $choiceValue = $this->normalizeChoiceOption($options['choice_value'] ?? null);
-
-        // ProviderFactory signature wants string|callable|null, Closure is callable.
-        $provider = $this->providerFactory->createProvider(
-            class: $class,
-            queryBuilder: $options['query_builder'] ?? null,
-            choiceLabel: $choiceLabel,
-            choiceValue: $choiceValue,
-        );
-
-        return $provider->getName();
-    }
-
-    public function buildView(FormView $view, FormInterface $form, array $options): void
-    {
-        if (!$options['autocomplete']) {
-            return;
-        }
-
-        if (($view->vars['expanded'] ?? false) === true) {
-            return;
-        }
-
-        $provider = $options['provider'];
-
-        if ($provider === null || $provider === '' || $provider === 'default') {
-            $inner = $form->getConfig()->getType()->getInnerType();
-
-            $provider = match (true) {
-                $inner instanceof CountryType => 'symfony_countries',
-                $inner instanceof EntityType => $this->resolveEntityProvider($form, $options),
-                default => null,
-            };
-        }
-
-        if ($provider === null || $provider === '' || $provider === 'default') {
-            throw new \InvalidArgumentException(sprintf(
-                'Autocomplete is enabled but no provider could be resolved for field "%s".',
-                $view->vars['full_name'] ?? '(unknown)',
-            ));
-        }
-
-        $view->vars['provider'] = $provider;
-        $view->vars['min_chars'] = $options['min_chars'];
-        $view->vars['debounce'] = $options['debounce'];
-        $view->vars['limit'] = $options['limit'];
-        $view->vars['theme'] = $this->templates->theme($options['theme']);
-
-        $cl = $this->normalizeChoiceOption($options['choice_label'] ?? null);
-        $cv = $this->normalizeChoiceOption($options['choice_value'] ?? null);
-
-        $view->vars['autocomplete_choice_label'] = is_string($cl) ? $cl : null;
-        $view->vars['autocomplete_choice_value'] = is_string($cv) ? $cv : null;
-
-        // For single-select, resolve the label of the currently selected entity
-        // so the text input can display it after server re-renders (e.g. Live Components).
-        $view->vars['selected_label'] = null;
-        $multiple = $options['multiple'] ?? false;
-        if (!$multiple) {
-            $normData = $form->getNormData();
-            if ($normData !== null && is_object($normData)) {
-                try {
-                    if (is_string($cl) && $cl !== '') {
-                        $view->vars['selected_label'] = (string) PropertyAccess::createPropertyAccessor()->getValue($normData, $cl);
-                    } elseif (method_exists($normData, '__toString')) {
-                        $view->vars['selected_label'] = (string) $normData;
-                    }
-                } catch (\Exception) {
-                    // Silently ignore if property is not accessible
-                }
-            }
-        }
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
