@@ -70,10 +70,22 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
         }
 
         $view->vars['provider'] = $provider;
-        $view->vars['min_chars'] = $options['min_chars'];
         $view->vars['debounce'] = $options['debounce'];
-        $view->vars['limit'] = $options['limit'];
         $view->vars['theme'] = $this->templates->theme($options['theme']);
+
+        // Choice-based types behave like searchable selects:
+        // show options on focus (min_chars=0) unless explicitly overridden
+        $view->vars['min_chars'] = $options['min_chars'] === 1 ? 0 : $options['min_chars'];
+
+        // For EnumType, default the limit to the number of cases (enums are small)
+        if ($inner instanceof EnumType && $options['limit'] === 10) {
+            $enumClass = $options['class'] ?? null;
+            $view->vars['limit'] = $enumClass !== null && enum_exists($enumClass)
+                ? \count($enumClass::cases())
+                : $options['limit'];
+        } else {
+            $view->vars['limit'] = $options['limit'];
+        }
 
         $cl = $this->normalizeChoiceOption($options['choice_label'] ?? null);
 
