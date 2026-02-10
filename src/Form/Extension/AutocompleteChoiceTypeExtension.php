@@ -7,6 +7,7 @@ use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractTypeExtension;
+use Symfony\Component\Form\ChoiceList\Factory\Cache\AbstractStaticOption;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\CurrencyType;
@@ -160,6 +161,11 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 
     private function normalizeChoiceOption(mixed $opt): string|\Closure|null
     {
+        // Unwrap Symfony's ChoiceLabel/ChoiceValue cache wrappers
+        if ($opt instanceof AbstractStaticOption) {
+            $opt = $opt->getOption();
+        }
+
         if (\is_string($opt) && $opt !== '') {
             return $opt;
         }

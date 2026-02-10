@@ -11,6 +11,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\Form\ChoiceList\Factory\Cache\AbstractStaticOption;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
@@ -47,8 +48,8 @@ class AutocompleteEntityType extends AbstractType
             $provider = $this->providerFactory->createProvider(
                 class: $class,
                 queryBuilder: $options['query_builder'],
-                choiceLabel: $options['choice_label'],
-                choiceValue: $options['choice_value'],
+                choiceLabel: self::unwrapChoiceOption($options['choice_label']),
+                choiceValue: self::unwrapChoiceOption($options['choice_value']),
             );
 
             $this->providerName = $provider->getName();
@@ -78,8 +79,8 @@ class AutocompleteEntityType extends AbstractType
 
         // Pass choice_label/choice_value as strings so the AJAX URL carries them
         // (closures can't be serialized; the controller uses these to recreate the provider)
-        $cl = $options['choice_label'] ?? null;
-        $cv = $options['choice_value'] ?? null;
+        $cl = self::unwrapChoiceOption($options['choice_label'] ?? null);
+        $cv = self::unwrapChoiceOption($options['choice_value'] ?? null);
 
         $view->vars['autocomplete_choice_label'] = \is_string($cl) && $cl !== '' ? $cl : null;
         $view->vars['autocomplete_choice_value'] = \is_string($cv) && $cv !== '' ? $cv : null;
@@ -123,6 +124,18 @@ class AutocompleteEntityType extends AbstractType
         $resolver->setAllowedTypes('min_chars', 'int');
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
+    }
+
+    /**
+     * Unwrap Symfony's ChoiceLabel/ChoiceValue cache wrappers to the inner option.
+     */
+    private static function unwrapChoiceOption(mixed $opt): mixed
+    {
+        if ($opt instanceof AbstractStaticOption) {
+            return $opt->getOption();
+        }
+
+        return $opt;
     }
 
     public function getBlockPrefix(): string
