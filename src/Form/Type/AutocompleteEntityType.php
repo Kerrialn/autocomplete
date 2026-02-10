@@ -12,6 +12,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class AutocompleteEntityType extends AbstractType
 {
@@ -74,6 +75,30 @@ class AutocompleteEntityType extends AbstractType
         $view->vars['debounce'] = $options['debounce'];
         $view->vars['limit'] = $options['limit'];
         $view->vars['theme'] = $this->templates->theme($options['theme']);
+
+        // Pass choice_label/choice_value as strings so the AJAX URL carries them
+        // (closures can't be serialized; the controller uses these to recreate the provider)
+        $cl = $options['choice_label'] ?? null;
+        $cv = $options['choice_value'] ?? null;
+
+        $view->vars['autocomplete_choice_label'] = \is_string($cl) && $cl !== '' ? $cl : null;
+        $view->vars['autocomplete_choice_value'] = \is_string($cv) && $cv !== '' ? $cv : null;
+
+        // For single-select, resolve the label of the currently selected entity
+        $view->vars['selected_label'] = null;
+        if (!$options['multiple']) {
+            $normData = $form->getNormData();
+            if ($normData !== null && \is_object($normData)) {
+                try {
+                    if (\is_string($cl) && $cl !== '') {
+                        $view->vars['selected_label'] = (string) PropertyAccess::createPropertyAccessor()->getValue($normData, $cl);
+                    } elseif (method_exists($normData, '__toString')) {
+                        $view->vars['selected_label'] = (string) $normData;
+                    }
+                } catch (\Exception) {
+                }
+            }
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
