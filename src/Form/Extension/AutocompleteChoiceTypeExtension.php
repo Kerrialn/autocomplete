@@ -9,7 +9,11 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
+use Symfony\Component\Form\Extension\Core\Type\CurrencyType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\LanguageType;
+use Symfony\Component\Form\Extension\Core\Type\LocaleType;
+use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -50,6 +54,10 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
             $provider = match (true) {
                 $inner instanceof EnumType => $this->resolveEnumProvider($options),
                 $inner instanceof CountryType => 'symfony_countries',
+                $inner instanceof LanguageType => 'symfony_languages',
+                $inner instanceof LocaleType => 'symfony_locales',
+                $inner instanceof CurrencyType => 'symfony_currencies',
+                $inner instanceof TimezoneType => 'symfony_timezones',
                 default => null,
             };
         }

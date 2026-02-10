@@ -10,6 +10,10 @@ use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteFormTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CurrencyProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\LanguageProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\LocaleProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\TimezoneProvider;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 use Kerrialnewham\Autocomplete\Security\AutocompleteSigner;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
@@ -62,7 +66,28 @@ return static function (ContainerConfigurator $container): void {
             '$signingSecret' => '%kerrialnewham.autocomplete.signing_secret%',
         ]);
 
+    // Built-in Symfony Intl providers
     $services->set(CountryProvider::class)
+        ->autowire()
+        ->autoconfigure()
+        ->tag('autocomplete.provider');
+
+    $services->set(LanguageProvider::class)
+        ->autowire()
+        ->autoconfigure()
+        ->tag('autocomplete.provider');
+
+    $services->set(LocaleProvider::class)
+        ->autowire()
+        ->autoconfigure()
+        ->tag('autocomplete.provider');
+
+    $services->set(CurrencyProvider::class)
+        ->autowire()
+        ->autoconfigure()
+        ->tag('autocomplete.provider');
+
+    $services->set(TimezoneProvider::class)
         ->autowire()
         ->autoconfigure()
         ->tag('autocomplete.provider');
@@ -73,7 +98,7 @@ return static function (ContainerConfigurator $container): void {
     $services->set(AutocompleteFormTypeExtension::class)
         ->tag('form.type_extension');
 
-    // Choice-based types (EnumType, CountryType)
+    // Choice-based types (EnumType, CountryType, LanguageType, LocaleType, CurrencyType, TimezoneType)
     $services->set(AutocompleteChoiceTypeExtension::class)
         ->autowire()
         ->tag('form.type_extension');
