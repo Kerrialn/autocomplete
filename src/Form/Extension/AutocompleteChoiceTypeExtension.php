@@ -18,6 +18,7 @@ use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
@@ -107,6 +108,8 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 
                 if ($choiceLabel !== null && method_exists($normData, $choiceLabel)) {
                     $view->vars['selected_label'] = (string) $normData->{$choiceLabel}();
+                } elseif ($normData instanceof TranslatableInterface && $this->translator !== null) {
+                    $view->vars['selected_label'] = $normData->trans($this->translator);
                 } else {
                     $view->vars['selected_label'] = $normData->name;
                 }
@@ -152,12 +155,14 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
             $translationDomain = null;
         }
 
+        $isTranslatable = is_subclass_of($enumClass, TranslatableInterface::class);
+
         if (!$this->providerRegistry->has($providerName)) {
             $provider = new EnumProvider(
                 enumClass: $enumClass,
                 providerName: $providerName,
                 choiceLabel: \is_string($choiceLabel) ? $choiceLabel : null,
-                translator: $translationDomain !== null ? $this->translator : null,
+                translator: ($translationDomain !== null || $isTranslatable) ? $this->translator : null,
                 translationDomain: $translationDomain !== null ? (string) $translationDomain : null,
             );
 

@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AutocompleteController extends AbstractController
@@ -135,11 +136,13 @@ final class AutocompleteController extends AbstractController
                 $translationDomain = null;
             }
 
+            $isTranslatable = is_subclass_of($enumClass, TranslatableInterface::class);
+
             return new EnumProvider(
                 enumClass: $enumClass,
                 providerName: $providerName,
                 choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
-                translator: $translationDomain !== null ? $this->translator : null,
+                translator: ($translationDomain !== null || $isTranslatable) ? $this->translator : null,
                 translationDomain: $translationDomain,
             );
         }

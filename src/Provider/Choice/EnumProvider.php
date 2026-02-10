@@ -4,6 +4,7 @@ namespace Kerrialnewham\Autocomplete\Provider\Choice;
 
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
+use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class EnumProvider implements AutocompleteProviderInterface, ChipProviderInterface
@@ -110,6 +111,10 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
             }
 
             return (string) $case->{$this->choiceLabel}();
+        }
+
+        if ($this->translator !== null && $case instanceof TranslatableInterface) {
+            return $case->trans($this->translator);
         }
 
         return $case->name;
