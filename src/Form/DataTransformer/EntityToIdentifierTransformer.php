@@ -25,7 +25,10 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
     }
 
     /**
-     * Transform entity(s) to identifier(s) for view layer (AJAX)
+     * Transform entity(s) to identifier(s) for view layer.
+     *
+     * For multiple mode, returns an array of ['id' => ..., 'label' => ...] items
+     * so that chip templates can render hidden inputs with the correct value.
      */
     public function transform(mixed $value): mixed
     {
@@ -38,14 +41,18 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
                 return [];
             }
 
-            $ids = [];
+            $items = [];
             foreach ($value as $entity) {
                 if ($entity !== null) {
-                    $ids[] = $this->extractId($entity);
+                    $id = $this->extractId($entity);
+                    $items[] = [
+                        'id' => $id,
+                        'label' => method_exists($entity, '__toString') ? (string) $entity : $id,
+                    ];
                 }
             }
 
-            return $ids;
+            return $items;
         }
 
         // Single mode
