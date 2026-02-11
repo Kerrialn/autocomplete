@@ -96,8 +96,11 @@ export default class extends Controller {
             event.target.select();
         }
 
-        // Always open dropdown on focus/click, regardless of minChars
-        const query = event.target.value.trim();
+        // Always open dropdown on focus/click, regardless of minChars.
+        // For single-select with a selection, search with empty query so all
+        // options are shown (the selected item is excluded via selected[] param).
+        const hasSelection = !this.multipleValue && this.selectedItems.size > 0;
+        const query = hasSelection ? '' : event.target.value.trim();
         this.search(query);
     }
 
