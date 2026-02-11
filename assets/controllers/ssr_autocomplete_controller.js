@@ -81,6 +81,15 @@ export default class extends Controller {
     onInput(event) {
         if (this.isSelectingOption) return;
 
+        // In single-select, typing means the user is changing their selection —
+        // clear the current selection so it reappears in results
+        if (!this.multipleValue && this.selectedItems.size > 0) {
+            this.selectedItems.clear();
+            if (this.hasSelectedInputTarget) {
+                this.selectedInputTarget.value = '';
+            }
+        }
+
         const query = event.target.value.trim();
 
         if (this.debounceTimer) {
