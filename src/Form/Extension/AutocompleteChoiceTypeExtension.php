@@ -18,6 +18,8 @@ use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -34,6 +36,30 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
     public static function getExtendedTypes(): iterable
     {
         return [ChoiceType::class];
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        // Symfony's ChoiceType normalizer strips placeholder to null for multiple selects.
+        // When autocomplete is enabled, we use the placeholder as the text input's placeholder
+        // attribute, which works regardless of selection mode. Override the normalizer to
+        // preserve the user's value for autocomplete fields.
+        $resolver->setNormalizer('placeholder', static function (Options $options, $placeholder) {
+            if ($options['autocomplete']) {
+                return $placeholder;
+            }
+
+            // Non-autocomplete: replicate Symfony ChoiceType default behavior
+            if ($options['multiple']) {
+                return null;
+            }
+
+            if (!$options['required'] && $placeholder === null) {
+                return '';
+            }
+
+            return $placeholder;
+        });
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
