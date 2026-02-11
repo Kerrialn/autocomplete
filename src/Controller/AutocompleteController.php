@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -157,6 +158,9 @@ final class AutocompleteController extends AbstractController
         $locale = (string) $request->query->get('locale', '');
         if ($locale !== '') {
             $request->setLocale($locale);
+            if ($this->translator instanceof LocaleAwareInterface) {
+                $this->translator->setLocale($locale);
+            }
         }
     }
 
