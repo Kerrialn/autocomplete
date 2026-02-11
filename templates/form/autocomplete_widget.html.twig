@@ -9,6 +9,21 @@
     {% set attr = attr|default({}) %}
     {% set value_for_widget = (selected_items is defined) ? selected_items : value %}
 
+    {# Normalize multi-select values: after form submission, Symfony uses raw
+       submitted data (array of ID strings) instead of transform() output.
+       Chip templates expect items with id/label keys. #}
+    {% if multiple and value_for_widget is iterable %}
+        {% set normalized = [] %}
+        {% for item in value_for_widget %}
+            {% if item is iterable and item.id is defined %}
+                {% set normalized = normalized|merge([item]) %}
+            {% elseif item is not null and item != '' %}
+                {% set normalized = normalized|merge([{id: item, label: item}]) %}
+            {% endif %}
+        {% endfor %}
+        {% set value_for_widget = normalized %}
+    {% endif %}
+
     {# If provider isn't set, don't break the whole form: fallback to the normal widget #}
     {% if provider is empty %}
         {{ block('choice_widget') }}

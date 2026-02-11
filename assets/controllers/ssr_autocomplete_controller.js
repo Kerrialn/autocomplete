@@ -350,16 +350,17 @@ export default class extends Controller {
 
     getInputName() {
         if (this.hasNameValue && this.nameValue) {
-            return this.nameValue;
+            // Strip trailing [] — the chip template appends its own []
+            return this.nameValue.replace(/\[\]$/, '');
         }
 
         if (this.hasSelectedInputTarget && this.selectedInputTarget.name) {
-            return this.selectedInputTarget.name.replace('[]', '');
+            return this.selectedInputTarget.name.replace(/\[\]$/, '');
         }
 
         // fallback: if the visible input has a name, use it
         if (this.hasInputTarget && this.inputTarget.name) {
-            return this.inputTarget.name.replace('[]', '');
+            return this.inputTarget.name.replace(/\[\]$/, '');
         }
 
         return 'autocomplete';
