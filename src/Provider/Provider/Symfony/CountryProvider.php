@@ -3,11 +3,12 @@
 namespace Kerrialnewham\Autocomplete\Provider\Provider\Symfony;
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Intl\Countries;
 
 final class CountryProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
-    public function __construct(private readonly string $locale = 'en') {}
+    public function __construct(private readonly RequestStack $requestStack) {}
 
     public function getName(): string
     {
@@ -20,7 +21,7 @@ final class CountryProvider implements AutocompleteProviderInterface, ChipProvid
         $selected = array_map('strval', $selected);
 
         // Countries::getNames() returns [ 'US' => 'United States', ... ] for a locale
-        $all = Countries::getNames($this->locale);
+        $all = Countries::getNames($this->getLocale());
 
         $results = [];
         foreach ($all as $code => $name) {
@@ -44,7 +45,7 @@ final class CountryProvider implements AutocompleteProviderInterface, ChipProvid
 
     public function get(string $id): ?array
     {
-        $all = Countries::getNames($this->locale);
+        $all = Countries::getNames($this->getLocale());
 
         if (!isset($all[$id])) {
             return null;
@@ -54,5 +55,10 @@ final class CountryProvider implements AutocompleteProviderInterface, ChipProvid
             'id' => $id,
             'label' => $all[$id],
         ];
+    }
+
+    private function getLocale(): string
+    {
+        return $this->requestStack->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

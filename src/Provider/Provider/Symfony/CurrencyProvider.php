@@ -4,11 +4,12 @@ namespace Kerrialnewham\Autocomplete\Provider\Provider\Symfony;
 
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Intl\Currencies;
 
 final class CurrencyProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
-    public function __construct(private readonly string $locale = 'en') {}
+    public function __construct(private readonly RequestStack $requestStack) {}
 
     public function getName(): string
     {
@@ -20,7 +21,7 @@ final class CurrencyProvider implements AutocompleteProviderInterface, ChipProvi
         $query = mb_strtolower($query);
         $selected = array_map('strval', $selected);
 
-        $all = Currencies::getNames($this->locale);
+        $all = Currencies::getNames($this->getLocale());
 
         $results = [];
         foreach ($all as $code => $name) {
@@ -50,7 +51,7 @@ final class CurrencyProvider implements AutocompleteProviderInterface, ChipProvi
 
     public function get(string $id): ?array
     {
-        $all = Currencies::getNames($this->locale);
+        $all = Currencies::getNames($this->getLocale());
 
         if (!isset($all[$id])) {
             return null;
@@ -60,5 +61,10 @@ final class CurrencyProvider implements AutocompleteProviderInterface, ChipProvi
             'id' => $id,
             'label' => $all[$id],
         ];
+    }
+
+    private function getLocale(): string
+    {
+        return $this->requestStack->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

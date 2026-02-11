@@ -4,11 +4,12 @@ namespace Kerrialnewham\Autocomplete\Provider\Provider\Symfony;
 
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Intl\Locales;
 
 final class LocaleProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
-    public function __construct(private readonly string $locale = 'en') {}
+    public function __construct(private readonly RequestStack $requestStack) {}
 
     public function getName(): string
     {
@@ -20,7 +21,7 @@ final class LocaleProvider implements AutocompleteProviderInterface, ChipProvide
         $query = mb_strtolower($query);
         $selected = array_map('strval', $selected);
 
-        $all = Locales::getNames($this->locale);
+        $all = Locales::getNames($this->getLocale());
 
         $results = [];
         foreach ($all as $code => $name) {
@@ -50,7 +51,7 @@ final class LocaleProvider implements AutocompleteProviderInterface, ChipProvide
 
     public function get(string $id): ?array
     {
-        $all = Locales::getNames($this->locale);
+        $all = Locales::getNames($this->getLocale());
 
         if (!isset($all[$id])) {
             return null;
@@ -60,5 +61,10 @@ final class LocaleProvider implements AutocompleteProviderInterface, ChipProvide
             'id' => $id,
             'label' => $all[$id],
         ];
+    }
+
+    private function getLocale(): string
+    {
+        return $this->requestStack->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }
