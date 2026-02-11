@@ -7,7 +7,7 @@
 {% set input_class = (attr.class|default('') ~ ' form-control')|trim %}
 {% set theme_name = theme ?? 'bootstrap-5' %}
 
-{% set placeholder = placeholder|default('Search...') %}
+{% set placeholder = attr.placeholder|default(placeholder)|default('Search...') %}
 
 {% set td = (translation_domain is defined ? translation_domain : null) %}
 {% set tp = (placeholder_translation_parameters is defined
@@ -94,7 +94,7 @@
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
                data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
         {% for attrName, attrValue in attr %}
-        {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
+        {% if attrName != 'class' and attrName != 'placeholder' %}{{ attrName }}="{{ attrValue }}"{% endif %}
         {% endfor %}>
 
         {# Loading spinner (Bootstrap) #}

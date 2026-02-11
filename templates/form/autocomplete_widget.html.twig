@@ -2,7 +2,7 @@
     {% set theme = theme|default('default') %}
     {% set provider = provider|default('') %}
     {% set multiple = multiple|default(false) %}
-    {% set placeholder = placeholder|default('Search...') %}
+    {% set placeholder = attr.placeholder|default(placeholder)|default('Search...') %}
     {% set min_chars = min_chars|default(1) %}
     {% set debounce = debounce|default(300) %}
     {% set limit = limit|default(10) %}

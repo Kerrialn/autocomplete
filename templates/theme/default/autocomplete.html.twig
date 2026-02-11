@@ -6,7 +6,7 @@
 {% set limit = limit|default(10) %}
 {% set theme_name = theme ?? 'default' %}
 
-{% set placeholder = placeholder|default('Search...') %}
+{% set placeholder = attr.placeholder|default(placeholder)|default('Search...') %}
 
 {% set td = (translation_domain is defined ? translation_domain : null) %}
 {% set tp = (placeholder_translation_parameters is defined
@@ -92,7 +92,7 @@
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
                data-action="input->kerrialnewham--autocomplete--ssr-autocomplete#onInput focus->kerrialnewham--autocomplete--ssr-autocomplete#onFocus keydown->kerrialnewham--autocomplete--ssr-autocomplete#onKeydown"
         {% for attrName, attrValue in attr %}
-        {% if attrName != 'class' %}{{ attrName }}="{{ attrValue }}"{% endif %}
+        {% if attrName != 'class' and attrName != 'placeholder' %}{{ attrName }}="{{ attrValue }}"{% endif %}
         {% endfor %}>
 
         <span class="autocomplete-loading" data-kerrialnewham--autocomplete--ssr-autocomplete-target="loading" style="display: none;">
