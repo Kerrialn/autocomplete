@@ -14,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\CurrencyType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\LanguageType;
 use Symfony\Component\Form\Extension\Core\Type\LocaleType;
+use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
@@ -62,6 +63,7 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
                 $inner instanceof LocaleType => 'symfony_locales',
                 $inner instanceof CurrencyType => 'symfony_currencies',
                 $inner instanceof TimezoneType => 'symfony_timezones',
+                $inner instanceof InternationalDialCodeType => 'symfony_dial_codes',
                 default => null,
             };
         }
@@ -128,6 +130,18 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
                         $view->vars['selected_label'] = (string) $normData;
                     }
                 } catch (\Exception) {
+                }
+            }
+
+            // For provider-backed types with scalar norm data (e.g. InternationalDialCodeType),
+            // resolve the label via the provider's get() method
+            if ($view->vars['selected_label'] === null && $normData !== null && \is_string($normData) && $normData !== '') {
+                $providerInstance = $this->providerRegistry->has($provider) ? $this->providerRegistry->get($provider) : null;
+                if ($providerInstance instanceof \Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface) {
+                    $item = $providerInstance->get($normData);
+                    if ($item !== null) {
+                        $view->vars['selected_label'] = $item['label'] ?? null;
+                    }
                 }
             }
         }

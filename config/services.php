@@ -9,7 +9,9 @@ use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteEntityTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteFormTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
+use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\DialCodeProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CurrencyProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\LanguageProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\LocaleProvider;
@@ -93,6 +95,14 @@ return static function (ContainerConfigurator $container): void {
         ->autowire()
         ->autoconfigure()
         ->tag('autocomplete.provider');
+
+    $services->set(DialCodeProvider::class)
+        ->autowire()
+        ->autoconfigure()
+        ->tag('autocomplete.provider');
+
+    $services->set(InternationalDialCodeType::class)
+        ->tag('form.type');
 
     $services->set(TemplateResolver::class);
 
