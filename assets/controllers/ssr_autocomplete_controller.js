@@ -18,7 +18,8 @@ export default class extends Controller {
         minChars: { type: Number, default: 1 },
         debounce: { type: Number, default: 300 },
         limit: { type: Number, default: 10 },
-        url: String
+        url: String,
+        name: String
     };
 
     connect() {
@@ -348,6 +349,10 @@ export default class extends Controller {
     }
 
     getInputName() {
+        if (this.hasNameValue && this.nameValue) {
+            return this.nameValue;
+        }
+
         if (this.hasSelectedInputTarget && this.selectedInputTarget.name) {
             return this.selectedInputTarget.name.replace('[]', '');
         }
