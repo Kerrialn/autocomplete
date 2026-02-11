@@ -23,13 +23,16 @@
     {% set placeholder_text = placeholder|trans(tp, td) %}
 {% endif %}
 
+{% set current_locale = app.request.locale|default('en') %}
+
 {% set sig = autocomplete_sig(
     'autocomplete_search',
     provider,
     theme_name,
     td is same as(false) ? '' : td,
     autocomplete_choice_label is defined ? autocomplete_choice_label : '',
-    autocomplete_choice_value is defined ? autocomplete_choice_value : ''
+    autocomplete_choice_value is defined ? autocomplete_choice_value : '',
+    current_locale
 ) %}
 
 {% set url_value = path('autocomplete_search', { provider: provider, theme: theme_name }) %}
@@ -42,8 +45,9 @@
 {% if autocomplete_choice_value is defined and autocomplete_choice_value %}
     {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'choice_value=' ~ autocomplete_choice_value|url_encode %}
 {% endif %}
+{% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'locale=' ~ current_locale|url_encode %}
 
-{% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
+{% set url_value = url_value ~ '&ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
 
 {% if selected_label is defined and selected_label and td is not same as(false) %}
     {% if td is null %}

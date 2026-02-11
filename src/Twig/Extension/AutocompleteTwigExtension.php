@@ -28,6 +28,7 @@ final class AutocompleteTwigExtension extends AbstractExtension
         ?string $translationDomain,
         ?string $choiceLabel,
         ?string $choiceValue,
+        string $locale = '',
     ): array {
         $ts = time();
 
@@ -44,6 +45,7 @@ final class AutocompleteTwigExtension extends AbstractExtension
             $td,
             $cl,
             $cv,
+            $locale,
             $userId,
             (string) $ts,
         ]);

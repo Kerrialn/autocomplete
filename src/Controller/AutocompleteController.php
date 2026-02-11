@@ -32,6 +32,7 @@ final class AutocompleteController extends AbstractController
     public function search(string $provider, Request $request): Response
     {
         $this->assertSigned($request, $provider, 'autocomplete_search');
+        $this->applyLocale($request);
 
         $query = (string) $request->query->get('query', '');
         $limit = (int) $request->query->get('limit', 10);
@@ -61,6 +62,7 @@ final class AutocompleteController extends AbstractController
     public function chip(string $provider, Request $request): Response
     {
         $this->assertSigned($request, $provider, 'autocomplete_search');
+        $this->applyLocale($request);
 
         $id = (string) $request->query->get('id', '');
         if ($id === '') {
@@ -150,6 +152,14 @@ final class AutocompleteController extends AbstractController
         return $this->providerRegistry->get($providerName);
     }
 
+    private function applyLocale(Request $request): void
+    {
+        $locale = (string) $request->query->get('locale', '');
+        if ($locale !== '') {
+            $request->setLocale($locale);
+        }
+    }
+
     /**
      * Signed request validation (HMAC) to prevent tampering with provider/theme/domain/choice_*.
      *
@@ -176,10 +186,11 @@ final class AutocompleteController extends AbstractController
         }
 
         // bind signature to stable params that must not be tampered with
-        $theme = (string) $request->query->get('theme', '');
-        $td    = (string) $request->query->get('translation_domain', '');
-        $cl    = (string) $request->query->get('choice_label', '');
-        $cv    = (string) $request->query->get('choice_value', '');
+        $theme  = (string) $request->query->get('theme', '');
+        $td     = (string) $request->query->get('translation_domain', '');
+        $cl     = (string) $request->query->get('choice_label', '');
+        $cv     = (string) $request->query->get('choice_value', '');
+        $locale = (string) $request->query->get('locale', '');
 
         // optionally bind to user (prevents sharing signed URL between users)
         $userId = $this->getUser()?->getUserIdentifier() ?? '';
@@ -191,6 +202,7 @@ final class AutocompleteController extends AbstractController
             $td,
             $cl,
             $cv,
+            $locale,
             $userId,
             (string) $ts,
         ]);
