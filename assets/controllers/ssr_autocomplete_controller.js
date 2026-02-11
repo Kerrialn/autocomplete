@@ -48,6 +48,15 @@ export default class extends Controller {
             });
         }
 
+        // Initialize single-select from hidden input so selectedItems is populated on page load
+        if (!this.multipleValue && this.hasSelectedInputTarget) {
+            const val = this.selectedInputTarget.value;
+            if (val) {
+                const label = this.hasInputTarget ? this.inputTarget.value.trim() : val;
+                this.selectedItems.set(val, { id: val, label, meta: null });
+            }
+        }
+
         // Close dropdown when clicking outside
         this.boundHandleClickOutside = this.handleClickOutside.bind(this);
         document.addEventListener('click', this.boundHandleClickOutside);
