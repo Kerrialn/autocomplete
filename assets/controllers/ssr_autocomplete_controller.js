@@ -96,6 +96,12 @@ export default class extends Controller {
             clearTimeout(this.debounceTimer);
         }
 
+        // For single-select, clearing the input should show all options
+        if (!this.multipleValue && query === '') {
+            this.search('');
+            return;
+        }
+
         if (query.length < this.minCharsValue) {
             this.closeDropdown();
             return;
@@ -233,6 +239,11 @@ export default class extends Controller {
         // Reset flag after a short delay to ensure the blur/clear doesn't trigger search
         setTimeout(() => {
             this.isSelectingOption = false;
+
+            // In multi-select, re-open the dropdown if the input still has focus
+            if (this.multipleValue && document.activeElement === this.inputTarget) {
+                this.search('');
+            }
         }, 100);
     }
 
