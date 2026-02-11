@@ -96,10 +96,9 @@ export default class extends Controller {
             event.target.select();
         }
 
+        // Always open dropdown on focus/click, regardless of minChars
         const query = event.target.value.trim();
-        if (query.length >= this.minCharsValue) {
-            this.search(query);
-        }
+        this.search(query);
     }
 
     async search(query) {
