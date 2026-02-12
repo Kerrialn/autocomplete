@@ -83,36 +83,6 @@ $builder->add('tags', AutocompleteType::class, [
 | `theme` | string\|null | `null` | Theme name |
 | `attr` | array | `[]` | HTML attributes |
 
-### AutocompleteEntityType
-
-Extends Symfony's `EntityType`. Providers are generated automatically.
-
-```php
-use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
-
-$builder->add('author', AutocompleteEntityType::class, [
-    'class' => User::class,
-    'choice_label' => 'username',
-]);
-
-$builder->add('category', AutocompleteEntityType::class, [
-    'class' => Category::class,
-    'choice_label' => 'name',
-    'query_builder' => fn(EntityRepository $repo) => $repo->createQueryBuilder('c')
-        ->where('c.active = true')
-        ->orderBy('c.name', 'ASC'),
-]);
-
-$builder->add('tags', AutocompleteEntityType::class, [
-    'class' => Tag::class,
-    'choice_label' => 'name',
-    'multiple' => true,
-    'theme' => 'cards',
-]);
-```
-
-Requires `doctrine/orm` and `doctrine/doctrine-bundle`.
-
 ### InternationalDialCodeType
 
 ```php

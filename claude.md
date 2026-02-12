@@ -81,14 +81,10 @@ This approach allows projects to match their existing design systems without fig
    - 10-minute expiry window to prevent replay attacks
    - Prevents tampering with provider/theme/domain/choice parameters
 
-5. **Form Types** (4 types)
+5. **Form Types** (3 types)
    - `src/Form/Type/AutocompleteType.php` - Core autocomplete form type
      - Options: `provider`, `multiple`, `placeholder`, `min_chars`, `debounce`, `limit`, `theme`, `attr`
      - Block prefix: `autocomplete`
-   - `src/Form/Type/AutocompleteEntityType.php` - Doctrine entity autocomplete (extends EntityType)
-     - Options: inherits EntityType + `provider`, `theme`, `placeholder`, `min_chars`, `debounce`, `limit`
-     - Block prefix: `autocomplete`
-     - Adds `EntityToIdentifierTransformer` for entity ↔ ID conversion
    - `src/Form/Type/InternationalDialCodeType.php` - Pre-configured dial code selector (extends ChoiceType)
      - Options: `autocomplete` (true), `provider` (`symfony_dial_codes`), `placeholder`
      - Block prefix: `international_dial_code`
@@ -121,16 +117,13 @@ This approach allows projects to match their existing design systems without fig
      - Conditional registration (only loads if Doctrine DBAL installed)
 
 8. **Doctrine Integration** (Optional)
-   - `src/Form/Type/AutocompleteEntityType.php` - EntityType-based autocomplete form type
    - `src/Form/DataTransformer/EntityToIdentifierTransformer.php` - Bidirectional entity ↔ ID conversion
    - `src/Provider/Doctrine/DoctrineEntityProvider.php` - Generic auto-generated entity provider
    - `src/Provider/Doctrine/EntityProviderFactory.php` - Factory for creating entity providers on-the-fly
    - Conditional service registration (only loads if Doctrine ORM installed)
    - Supports all EntityType options: `query_builder`, `choice_label`, `choice_value`
    - Automatic provider generation with custom override support
-   - Two integration approaches:
-     - `AutocompleteEntityType` - Dedicated form type extending EntityType
-     - `EntityType` with `autocomplete: true` - Form extension approach
+   - Use `EntityType` with `autocomplete: true` via the form extension
 
 ### Templates (Twig)
 

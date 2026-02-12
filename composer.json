@@ -33,7 +33,7 @@
     "doctrine/doctrine-bundle": "^2.11"
   },
   "suggest": {
-    "doctrine/orm": "Required for AutocompleteEntityType and automatic entity provider generation",
+    "doctrine/orm": "Required for entity autocomplete and automatic entity provider generation",
     "doctrine/doctrine-bundle": "Required for Doctrine integration with Symfony"
   },
   "extra": {

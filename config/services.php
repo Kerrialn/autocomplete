@@ -8,7 +8,6 @@ use Kerrialnewham\Autocomplete\Controller\AutocompleteController;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteChoiceTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteEntityTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteFormTypeExtension;
-use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Kerrialnewham\Autocomplete\Form\Type\PhoneNumberType;
@@ -144,8 +143,5 @@ return static function (ContainerConfigurator $container): void {
             ->autowire()
             ->tag('form.type_extension');
 
-        $services->set(AutocompleteEntityType::class)
-            ->autowire()
-            ->tag('form.type');
     }
 };
