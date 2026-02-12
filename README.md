@@ -1,6 +1,7 @@
 # Symfony Autocomplete Bundle
 
 Server-side rendered autocomplete for Symfony. No Tom Select, no build step. Twig templates + Stimulus.
+Highly customizable, just override the twig template. 
 
 ## Installation
 
