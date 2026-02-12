@@ -104,6 +104,16 @@ Displays flag emoji, country name, and dial code.
 Pass `'autocomplete' => true` to any Symfony choice or entity type. Providers are resolved automatically.
 
 ```php
+$builder->add('author', EntityType::class, [
+    'class' => User::class,
+    'autocomplete' => true,
+]);
+
+$builder->add('status', EnumType::class, [
+    'class' => Status::class,
+    'autocomplete' => true,
+]);
+
 $builder->add('country', CountryType::class, [
     'autocomplete' => true,
     'theme' => 'dark',
@@ -122,16 +132,6 @@ $builder->add('timezone', TimezoneType::class, [
 ]);
 
 $builder->add('locale', LocaleType::class, [
-    'autocomplete' => true,
-]);
-
-$builder->add('status', EnumType::class, [
-    'class' => Status::class,
-    'autocomplete' => true,
-]);
-
-$builder->add('author', EntityType::class, [
-    'class' => User::class,
     'autocomplete' => true,
 ]);
 ```

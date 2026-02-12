@@ -1,11 +1,25 @@
+{% set td = (translation_domain is defined ? translation_domain : null) %}
+{% if td == '' %}
+    {% set td = null %}
+{% endif %}
+
+{% set label_text = item.label %}
+{% if td is not same as(false) %}
+    {% if td is null %}
+        {% set label_text = item.label|trans %}
+    {% else %}
+        {% set label_text = item.label|trans({}, td) %}
+    {% endif %}
+{% endif %}
+
 <div class="autocomplete-chip"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
      data-autocomplete-chip-value="{{ item.id }}">
-    <span class="autocomplete-chip-label">{{ item.label }}</span>
+    <span class="autocomplete-chip-label">{{ label_text }}</span>
 
     <button type="button"
             class="autocomplete-chip-remove"
-            aria-label="Remove {{ item.label }}"
+            aria-label="Remove {{ label_text }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
         &times;
     </button>

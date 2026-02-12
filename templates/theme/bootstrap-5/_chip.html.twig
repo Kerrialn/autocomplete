@@ -1,11 +1,25 @@
+{% set td = (translation_domain is defined ? translation_domain : null) %}
+{% if td == '' %}
+    {% set td = null %}
+{% endif %}
+
+{% set label_text = item.label %}
+{% if td is not same as(false) %}
+    {% if td is null %}
+        {% set label_text = item.label|trans %}
+    {% else %}
+        {% set label_text = item.label|trans({}, td) %}
+    {% endif %}
+{% endif %}
+
 <span class="badge text-bg-primary rounded-pill d-flex align-items-center justify-content-between gap-2"
       data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
       data-autocomplete-chip-value="{{ item.id }}">
-    <span>{{ item.label }}</span>
+    <span>{{ label_text }}</span>
 
     <a type="button"
             class="btn btn-light rounded-pill py-0 px-1"
-            aria-label="Remove {{ item.label }}"
+            aria-label="Remove {{ label_text }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
         <i class="bi bi-x"></i>
     </a>
