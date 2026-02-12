@@ -2,6 +2,7 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Doctrine\DBAL\Types\Type as DBALType;
 use Doctrine\Persistence\ManagerRegistry;
 use Kerrialnewham\Autocomplete\Controller\AutocompleteController;
 use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteChoiceTypeExtension;
@@ -10,6 +11,7 @@ use Kerrialnewham\Autocomplete\Form\Extension\AutocompleteFormTypeExtension;
 use Kerrialnewham\Autocomplete\Form\Type\AutocompleteEntityType;
 use Kerrialnewham\Autocomplete\Provider\Doctrine\EntityProviderFactory;
 use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
+use Kerrialnewham\Autocomplete\Form\Type\PhoneNumberType;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\DialCodeProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CurrencyProvider;
@@ -104,6 +106,9 @@ return static function (ContainerConfigurator $container): void {
     $services->set(InternationalDialCodeType::class)
         ->tag('form.type');
 
+    $services->set(PhoneNumberType::class)
+        ->tag('form.type');
+
     $services->set(TemplateResolver::class);
 
     // Shared options (autocomplete, provider, min_chars, etc.) + block prefix injection
@@ -117,6 +122,14 @@ return static function (ContainerConfigurator $container): void {
             '$translator' => service(TranslatorInterface::class)->nullOnInvalid(),
         ])
         ->tag('form.type_extension');
+
+    // Doctrine DBAL phone_number type (conditional on Doctrine DBAL availability)
+    if (class_exists(DBALType::class) && !DBALType::hasType(\Kerrialnewham\Autocomplete\Doctrine\Type\PhoneNumberType::NAME)) {
+        DBALType::addType(
+            \Kerrialnewham\Autocomplete\Doctrine\Type\PhoneNumberType::NAME,
+            \Kerrialnewham\Autocomplete\Doctrine\Type\PhoneNumberType::class
+        );
+    }
 
     // Doctrine entity support (conditional on Doctrine availability)
     if (interface_exists(ManagerRegistry::class)) {
