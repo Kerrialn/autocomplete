@@ -50,6 +50,11 @@ Include the CSS:
 
 Requires `APP_SECRET` in your `.env` for HMAC-signed requests.
 
+## Demos
+
+![ScreenRecording2026-02-12at10 47 36-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/0847d2ba-a545-4f1e-bec0-73fdf068225b)
+![cards-2-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/37d62029-3c18-4b6c-a6be-1439e6350a1e)
+
 ## Form Types
 
 ### AutocompleteType
