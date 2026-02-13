@@ -670,6 +670,17 @@
    Browser support: Chrome 105+, Firefox 121+, Safari 15.4+, Edge 105+
    ============================================================================= */
 
+/* Reset: when .form-floating is present (e.g. Symfony Bootstrap 5 form theme)
+   but floating_label is not enabled, pull the label back into normal flow
+   so it renders above the input instead of overlapping it. */
+.form-floating:has([data-autocomplete-theme="bootstrap-5"]:not([data-autocomplete-floating])) > label {
+    position: static;
+    padding: 0;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+}
+
 /* Input sizing to match Bootstrap's floating label dimensions */
 .form-floating [data-autocomplete-floating] .form-control {
     height: calc(3.5rem + calc(var(--bs-border-width) * 2));
