@@ -2,6 +2,7 @@
 
 namespace Kerrialnewham\Autocomplete\Form\Extension;
 
+use Kerrialnewham\Autocomplete\Form\ChoiceLoader\AutocompleteChoiceLoader;
 use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Kerrialnewham\Autocomplete\Provider\Choice\EnumProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
@@ -46,6 +47,18 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        // When autocomplete is enabled and no explicit choices were provided
+        // (e.g. InternationalDialCodeType), inject a loader that accepts any
+        // submitted value so Symfony's ChoiceType validation doesn't reject it.
+        // Types with real choices (CountryType, EnumType, etc.) are unaffected.
+        $resolver->addNormalizer('choice_loader', static function (Options $options, $choiceLoader) {
+            if (!$options['autocomplete'] || !empty($options['choices'])) {
+                return $choiceLoader;
+            }
+
+            return new AutocompleteChoiceLoader();
+        });
+
         // Symfony's ChoiceType normalizer strips placeholder to null for multiple selects.
         // When autocomplete is enabled, we use the placeholder as the text input's placeholder
         // attribute, which works regardless of selection mode. Override the normalizer to
