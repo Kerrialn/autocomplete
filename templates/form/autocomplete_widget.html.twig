@@ -26,7 +26,11 @@
 
     {# If provider isn't set, don't break the whole form: fallback to the normal widget #}
     {% if provider is empty %}
-        {{ block('choice_widget') }}
+        {% if expanded is defined %}
+            {{ block('choice_widget') }}
+        {% else %}
+            {{ block('form_widget') }}
+        {% endif %}
     {% else %}
         {% include '@Autocomplete/theme/' ~ theme ~ '/autocomplete.html.twig' with {
             name: full_name,
