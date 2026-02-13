@@ -57,8 +57,11 @@
     {% endif %}
 {% endif %}
 
+{% set is_floating = floating_label is defined and floating_label %}
+
 <div class="position-relative"
      data-autocomplete-theme="{{ theme_name }}"
+     {% if is_floating %}data-autocomplete-floating{% endif %}
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
      data-kerrialnewham--autocomplete--ssr-autocomplete-theme-value="{{ theme_name }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-provider-value="{{ provider }}"

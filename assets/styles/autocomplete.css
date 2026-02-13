@@ -661,18 +661,17 @@
 /* =============================================================================
    BOOTSTRAP 5 FLOATING LABELS SUPPORT
 
-   Enables Bootstrap 5 floating labels (.form-floating) with the autocomplete
-   widget. The nested wrapper divs break Bootstrap's direct-child selectors,
-   so we use :has() to detect input state through the nesting.
+   Activated by the floating_label form option, which adds .form-floating to
+   the row and data-autocomplete-floating to the widget wrapper.
 
    Usage:
-     row_attr: { class: 'form-floating mb-3' }
+     'floating_label' => true
 
    Browser support: Chrome 105+, Firefox 121+, Safari 15.4+, Edge 105+
    ============================================================================= */
 
 /* Input sizing to match Bootstrap's floating label dimensions */
-.form-floating [data-autocomplete-theme="bootstrap-5"] .form-control {
+.form-floating [data-autocomplete-floating] .form-control {
     height: calc(3.5rem + calc(var(--bs-border-width) * 2));
     min-height: calc(3.5rem + calc(var(--bs-border-width) * 2));
     line-height: 1.25;
@@ -680,36 +679,36 @@
 }
 
 /* Hide placeholder so the label acts as the visual placeholder */
-.form-floating [data-autocomplete-theme="bootstrap-5"] .form-control::placeholder {
+.form-floating [data-autocomplete-floating] .form-control::placeholder {
     color: transparent;
 }
 
 /* Shift input padding when focused to make room for the floated label */
-.form-floating [data-autocomplete-theme="bootstrap-5"] .form-control:focus {
+.form-floating [data-autocomplete-floating] .form-control:focus {
     padding-top: 1.625rem;
     padding-bottom: .625rem;
 }
 
 /* Shift input padding when has content (not showing placeholder) */
-.form-floating [data-autocomplete-theme="bootstrap-5"] .form-control:not(:placeholder-shown) {
+.form-floating [data-autocomplete-floating] .form-control:not(:placeholder-shown) {
     padding-top: 1.625rem;
     padding-bottom: .625rem;
 }
 
 /* Float the label up when the input is focused */
-.form-floating:has([data-autocomplete-theme="bootstrap-5"] .form-control:focus) > label {
+.form-floating:has([data-autocomplete-floating] .form-control:focus) > label {
     color: rgba(var(--bs-body-color-rgb), .65);
     transform: scale(.85) translateY(-.5rem) translateX(.15rem);
 }
 
 /* Float the label up when the input has content */
-.form-floating:has([data-autocomplete-theme="bootstrap-5"] .form-control:not(:placeholder-shown)) > label {
+.form-floating:has([data-autocomplete-floating] .form-control:not(:placeholder-shown)) > label {
     color: rgba(var(--bs-body-color-rgb), .65);
     transform: scale(.85) translateY(-.5rem) translateX(.15rem);
 }
 
 /* Ensure the label is positioned above the autocomplete wrapper */
-.form-floating:has([data-autocomplete-theme="bootstrap-5"]) > label {
+.form-floating:has([data-autocomplete-floating]) > label {
     z-index: 1;
     pointer-events: none;
 }

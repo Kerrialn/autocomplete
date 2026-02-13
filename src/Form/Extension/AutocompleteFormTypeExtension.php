@@ -52,6 +52,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $prefixes[] = $unique;
 
         $view->vars['block_prefixes'] = array_values(array_unique($prefixes));
+        $view->vars['floating_label'] = $options['floating_label'] === true;
 
         if ($options['floating_label'] === true) {
             $rowAttr = $view->vars['row_attr'] ?? [];
