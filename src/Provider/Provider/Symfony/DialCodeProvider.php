@@ -12,11 +12,6 @@ final class DialCodeProvider implements AutocompleteProviderInterface, ChipProvi
 {
     public function __construct(private readonly RequestStack $requestStack) {}
 
-    public function getName(): string
-    {
-        return 'symfony_dial_codes';
-    }
-
     public function search(string $query, int $limit, array $selected): array
     {
         $query = mb_strtolower($query);

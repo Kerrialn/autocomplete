@@ -28,7 +28,6 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
     public function __construct(
         private readonly ManagerRegistry $registry,
         private readonly string $class,
-        private readonly string $providerName,
         mixed $queryBuilder = null,
         mixed $choiceLabel = null,
         mixed $choiceValue = null,
@@ -48,11 +47,6 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         } elseif ($choiceValue !== null && is_callable($choiceValue)) {
             $this->choiceValueFn = \Closure::fromCallable($choiceValue);
         }
-    }
-
-    public function getName(): string
-    {
-        return $this->providerName;
     }
 
     public function search(string $query, int $limit = 10, array $selected = []): array

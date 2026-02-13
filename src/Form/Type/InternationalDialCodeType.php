@@ -2,6 +2,7 @@
 
 namespace Kerrialnewham\Autocomplete\Form\Type;
 
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\DialCodeProvider;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -12,7 +13,7 @@ class InternationalDialCodeType extends AbstractType
     {
         $resolver->setDefaults([
             'autocomplete' => true,
-            'provider' => 'symfony_dial_codes',
+            'provider' => DialCodeProvider::class,
             'placeholder' => 'Select dialing code...',
         ]);
     }

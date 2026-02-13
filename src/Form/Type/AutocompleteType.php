@@ -18,7 +18,9 @@ class AutocompleteType extends AbstractType
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-        $view->vars['provider'] = $options['provider'];
+        if ($options['provider'] !== null) {
+            $view->vars['provider'] = $options['provider'];
+        }
         $view->vars['multiple'] = $options['multiple'];
         $view->vars['placeholder'] = $options['placeholder'];
         $view->vars['min_chars'] = $options['min_chars'];
@@ -31,7 +33,7 @@ class AutocompleteType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'provider' => 'default',
+            'provider' => null,
             'multiple' => false,
             'placeholder' => 'Search...',
             'min_chars' => 1,
@@ -42,7 +44,7 @@ class AutocompleteType extends AbstractType
             'compound' => false,
         ]);
 
-        $resolver->setAllowedTypes('provider', 'string');
+        $resolver->setAllowedTypes('provider', ['string', 'null']);
         $resolver->setAllowedTypes('multiple', 'bool');
         $resolver->setAllowedTypes('placeholder', 'string');
         $resolver->setAllowedTypes('min_chars', 'int');

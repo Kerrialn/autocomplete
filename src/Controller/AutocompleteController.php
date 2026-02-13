@@ -100,57 +100,59 @@ final class AutocompleteController extends AbstractController
 
     private function resolveProvider(string $providerName, Request $request): AutocompleteProviderInterface
     {
+        // 1. Direct registry lookup
         if ($this->providerRegistry->has($providerName)) {
             return $this->providerRegistry->get($providerName);
         }
 
-        if (str_starts_with($providerName, 'entity.') && $this->entityProviderFactory !== null) {
-            $entityClass = substr($providerName, 7);
-
-            if (!class_exists($entityClass)) {
-                throw new NotFoundHttpException(
-                    sprintf('Entity class "%s" does not exist for provider "%s".', $entityClass, $providerName)
-                );
-            }
-
+        // 2. Doctrine entity: class exists and is a managed entity
+        if ($this->entityProviderFactory !== null && class_exists($providerName) && $this->isDoctrineEntity($providerName)) {
             $choiceLabel = (string) $request->query->get('choice_label', '');
             $choiceValue = (string) $request->query->get('choice_value', '');
 
             return $this->entityProviderFactory->createProvider(
-                class: $entityClass,
+                class: $providerName,
                 queryBuilder: null,
                 choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
                 choiceValue: $choiceValue !== '' ? $choiceValue : null,
             );
         }
 
-        if (str_starts_with($providerName, 'enum.')) {
-            $enumClass = substr($providerName, 5);
-
-            if (!enum_exists($enumClass) || !is_subclass_of($enumClass, \BackedEnum::class)) {
-                throw new NotFoundHttpException(
-                    sprintf('Backed enum class "%s" does not exist for provider "%s".', $enumClass, $providerName)
-                );
-            }
-
+        // 3. Backed enum
+        if (enum_exists($providerName) && is_subclass_of($providerName, \BackedEnum::class)) {
             $choiceLabel = (string) $request->query->get('choice_label', '');
             $translationDomain = $request->query->get('translation_domain');
             if ($translationDomain === '') {
                 $translationDomain = null;
             }
 
-            $isTranslatable = is_subclass_of($enumClass, TranslatableInterface::class);
+            $isTranslatable = is_subclass_of($providerName, TranslatableInterface::class);
 
-            return new EnumProvider(
-                enumClass: $enumClass,
-                providerName: $providerName,
+            $provider = new EnumProvider(
+                enumClass: $providerName,
                 choiceLabel: $choiceLabel !== '' ? $choiceLabel : null,
                 translator: ($translationDomain !== null || $isTranslatable) ? $this->translator : null,
                 translationDomain: $translationDomain,
             );
+
+            $this->providerRegistry->register($provider, $providerName);
+
+            return $provider;
         }
 
+        // 4. Fall through to registry (throws)
         return $this->providerRegistry->get($providerName);
+    }
+
+    private function isDoctrineEntity(string $class): bool
+    {
+        if ($this->entityProviderFactory === null) {
+            return false;
+        }
+
+        $managerRegistry = $this->entityProviderFactory->getRegistry();
+
+        return $managerRegistry->getManagerForClass($class) !== null;
     }
 
     private function applyLocale(Request $request): void

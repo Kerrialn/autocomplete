@@ -2,7 +2,14 @@
 
 namespace Kerrialnewham\Autocomplete\Form\Extension;
 
+use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Kerrialnewham\Autocomplete\Provider\Choice\EnumProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CurrencyProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\DialCodeProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\LanguageProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\LocaleProvider;
+use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\TimezoneProvider;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 use Kerrialnewham\Autocomplete\Theme\TemplateResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -14,7 +21,6 @@ use Symfony\Component\Form\Extension\Core\Type\CurrencyType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\LanguageType;
 use Symfony\Component\Form\Extension\Core\Type\LocaleType;
-use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
 use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
@@ -81,20 +87,20 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 
         $provider = $options['provider'];
 
-        if ($provider === null || $provider === '' || $provider === 'default') {
+        if ($provider === null || $provider === '') {
             $provider = match (true) {
                 $inner instanceof EnumType => $this->resolveEnumProvider($options),
-                $inner instanceof CountryType => 'symfony_countries',
-                $inner instanceof LanguageType => 'symfony_languages',
-                $inner instanceof LocaleType => 'symfony_locales',
-                $inner instanceof CurrencyType => 'symfony_currencies',
-                $inner instanceof TimezoneType => 'symfony_timezones',
-                $inner instanceof InternationalDialCodeType => 'symfony_dial_codes',
+                $inner instanceof CountryType => CountryProvider::class,
+                $inner instanceof LanguageType => LanguageProvider::class,
+                $inner instanceof LocaleType => LocaleProvider::class,
+                $inner instanceof CurrencyType => CurrencyProvider::class,
+                $inner instanceof TimezoneType => TimezoneProvider::class,
+                $inner instanceof InternationalDialCodeType => DialCodeProvider::class,
                 default => null,
             };
         }
 
-        if ($provider === null || $provider === '' || $provider === 'default') {
+        if ($provider === null || $provider === '') {
             throw new \InvalidArgumentException(sprintf(
                 'Autocomplete is enabled but no provider could be resolved for field "%s".',
                 $view->vars['full_name'] ?? '(unknown)',
@@ -188,7 +194,7 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
             ));
         }
 
-        $providerName = 'enum.' . $enumClass;
+        $providerName = $enumClass;
         $choiceLabel = $this->normalizeChoiceOption($options['choice_label'] ?? null);
         $translationDomain = $options['choice_translation_domain'] ?? $options['translation_domain'] ?? null;
         if ($translationDomain === false) {
@@ -200,13 +206,12 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
         if (!$this->providerRegistry->has($providerName)) {
             $provider = new EnumProvider(
                 enumClass: $enumClass,
-                providerName: $providerName,
                 choiceLabel: \is_string($choiceLabel) ? $choiceLabel : null,
                 translator: ($translationDomain !== null || $isTranslatable) ? $this->translator : null,
                 translationDomain: $translationDomain !== null ? (string) $translationDomain : null,
             );
 
-            $this->providerRegistry->register($provider);
+            $this->providerRegistry->register($provider, $providerName);
         }
 
         return $providerName;

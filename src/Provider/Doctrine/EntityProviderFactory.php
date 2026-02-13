@@ -45,7 +45,6 @@ class EntityProviderFactory
             $provider = new DoctrineEntityProvider(
                 registry: $this->registry,
                 class: $class,
-                providerName: $providerName . '.auto', // Different name to avoid conflict
                 queryBuilder: $queryBuilder,
                 choiceLabel: $choiceLabel,
                 choiceValue: $choiceValue,
@@ -59,7 +58,6 @@ class EntityProviderFactory
         $provider = new DoctrineEntityProvider(
             registry: $this->registry,
             class: $class,
-            providerName: $providerName,
             queryBuilder: $queryBuilder,
             choiceLabel: $choiceLabel,
             choiceValue: $choiceValue,
@@ -67,14 +65,14 @@ class EntityProviderFactory
 
         // Cache and register
         $this->cache[$cacheKey] = $provider;
-        $this->providerRegistry->register($provider);
+        $this->providerRegistry->register($provider, $providerName);
 
         return $provider;
     }
 
     public function getProviderName(string $class): string
     {
-        return 'entity.' . $class;
+        return $class;
     }
 
     public function hasProvider(string $class): bool

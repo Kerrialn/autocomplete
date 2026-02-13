@@ -17,7 +17,6 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
      */
     public function __construct(
         string $enumClass,
-        private readonly string $providerName,
         private readonly ?string $choiceLabel = null,
         private readonly ?TranslatorInterface $translator = null,
         private readonly ?string $translationDomain = null,
@@ -30,11 +29,6 @@ final class EnumProvider implements AutocompleteProviderInterface, ChipProviderI
         }
 
         $this->enumClass = $enumClass;
-    }
-
-    public function getName(): string
-    {
-        return $this->providerName;
     }
 
     public function search(string $query, int $limit, array $selected): array

@@ -11,11 +11,6 @@ final class LocaleProvider implements AutocompleteProviderInterface, ChipProvide
 {
     public function __construct(private readonly RequestStack $requestStack) {}
 
-    public function getName(): string
-    {
-        return 'symfony_locales';
-    }
-
     public function search(string $query, int $limit, array $selected): array
     {
         $query = mb_strtolower($query);

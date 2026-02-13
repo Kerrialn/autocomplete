@@ -71,7 +71,7 @@ final class AutocompleteEntityTypeExtension extends AbstractTypeExtension
 
         $provider = $options['provider'];
 
-        if ($provider === null || $provider === '' || $provider === 'default') {
+        if ($provider === null || $provider === '') {
             $provider = $this->resolveEntityProvider($form, $options);
         }
 
@@ -120,14 +120,14 @@ final class AutocompleteEntityTypeExtension extends AbstractTypeExtension
         $choiceLabel = $this->normalizeChoiceOption($options['choice_label'] ?? null);
         $choiceValue = $this->normalizeChoiceOption($options['choice_value'] ?? null);
 
-        $provider = $this->providerFactory->createProvider(
+        $this->providerFactory->createProvider(
             class: $class,
             queryBuilder: $options['query_builder'] ?? null,
             choiceLabel: $choiceLabel,
             choiceValue: $choiceValue,
         );
 
-        return $provider->getName();
+        return $this->providerFactory->getProviderName($class);
     }
 
     private function normalizeChoiceOption(mixed $opt): string|\Closure|null

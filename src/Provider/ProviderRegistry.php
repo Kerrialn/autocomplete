@@ -13,20 +13,12 @@ final class ProviderRegistry
     public function __construct(iterable $providers)
     {
         foreach ($providers as $p) {
-            $this->providers[$p->getName()] = $p;
+            $this->providers[get_class($p)] = $p;
         }
     }
 
     public function get(string $name): AutocompleteProviderInterface
     {
-        if ($name === '' || $name === 'default') {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid provider "%s". Provider must be set on the form field. Available providers: [%s]',
-                $name,
-                implode(', ', $this->names())
-            ));
-        }
-
         return $this->providers[$name]
             ?? throw new InvalidArgumentException(sprintf(
                 'Unknown provider "%s". Available providers: [%s]',
@@ -48,8 +40,8 @@ final class ProviderRegistry
         return isset($this->providers[$name]);
     }
 
-    public function register(AutocompleteProviderInterface $provider): void
+    public function register(AutocompleteProviderInterface $provider, ?string $name = null): void
     {
-        $this->providers[$provider->getName()] = $provider;
+        $this->providers[$name ?? get_class($provider)] = $provider;
     }
 }

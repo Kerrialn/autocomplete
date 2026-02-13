@@ -10,11 +10,6 @@ final class CountryProvider implements AutocompleteProviderInterface, ChipProvid
 {
     public function __construct(private readonly RequestStack $requestStack) {}
 
-    public function getName(): string
-    {
-        return 'symfony_countries';
-    }
-
     public function search(string $query, int $limit, array $selected): array
     {
         $query = mb_strtolower($query);

@@ -7,11 +7,6 @@ use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
 
 final class TimezoneProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
-    public function getName(): string
-    {
-        return 'symfony_timezones';
-    }
-
     public function search(string $query, int $limit, array $selected): array
     {
         $query = mb_strtolower($query);
