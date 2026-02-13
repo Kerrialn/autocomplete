@@ -672,13 +672,21 @@
 
 /* Reset: when .form-floating is present (e.g. Symfony Bootstrap 5 form theme)
    but floating_label is not enabled, pull the label back into normal flow
-   so it renders above the input instead of overlapping it. */
+   above the input. Flex column + order:-1 is needed because Bootstrap's
+   floating label DOM places the <label> after the <input>. */
+.form-floating:has([data-autocomplete-theme="bootstrap-5"]:not([data-autocomplete-floating])) {
+    display: flex;
+    flex-direction: column;
+}
+
 .form-floating:has([data-autocomplete-theme="bootstrap-5"]:not([data-autocomplete-floating])) > label {
     position: static;
     padding: 0;
+    margin-bottom: .5rem;
     transform: none;
     opacity: 1;
     pointer-events: auto;
+    order: -1;
 }
 
 /* Input sizing to match Bootstrap's floating label dimensions */
