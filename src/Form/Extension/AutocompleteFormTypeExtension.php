@@ -24,6 +24,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             'debounce' => 300,
             'limit' => 10,
             'theme' => null,
+            'floating_label' => null,
         ]);
 
         $resolver->setAllowedTypes('autocomplete', 'bool');
@@ -32,6 +33,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');
         $resolver->setAllowedTypes('theme', ['null', 'string']);
+        $resolver->setAllowedTypes('floating_label', ['null', 'bool']);
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
@@ -50,5 +52,11 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $prefixes[] = $unique;
 
         $view->vars['block_prefixes'] = array_values(array_unique($prefixes));
+
+        if ($options['floating_label'] === true) {
+            $rowAttr = $view->vars['row_attr'] ?? [];
+            $rowAttr['class'] = trim(($rowAttr['class'] ?? '') . ' form-floating');
+            $view->vars['row_attr'] = $rowAttr;
+        }
     }
 }
