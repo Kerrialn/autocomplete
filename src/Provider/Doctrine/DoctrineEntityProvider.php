@@ -32,7 +32,10 @@ final class DoctrineEntityProvider implements AutocompleteProviderInterface, Chi
         mixed $choiceLabel = null,
         mixed $choiceValue = null,
     ) {
-        if ($queryBuilder !== null) {
+        if ($queryBuilder instanceof QueryBuilder) {
+            $qb = $queryBuilder;
+            $this->queryBuilderFactory = static fn () => clone $qb;
+        } elseif ($queryBuilder !== null) {
             $this->queryBuilderFactory = \Closure::fromCallable($queryBuilder);
         }
 

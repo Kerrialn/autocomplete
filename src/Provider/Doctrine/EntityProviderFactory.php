@@ -2,6 +2,7 @@
 
 namespace Kerrialnewham\Autocomplete\Provider\Doctrine;
 
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Kerrialnewham\Autocomplete\Provider\ProviderRegistry;
 
@@ -17,7 +18,7 @@ class EntityProviderFactory
 
     public function createProvider(
         string $class,
-        ?callable $queryBuilder = null,
+        QueryBuilder|callable|null $queryBuilder = null,
         string|callable|null $choiceLabel = null,
         string|callable|null $choiceValue = null,
     ): DoctrineEntityProvider {
@@ -88,14 +89,14 @@ class EntityProviderFactory
 
     private function getCacheKey(
         string $class,
-        ?callable $queryBuilder,
+        QueryBuilder|callable|null $queryBuilder,
         string|callable|null $choiceLabel,
         string|callable|null $choiceValue
     ): string {
-        // For callables, we can't create a reliable cache key, so use object hash
+        // For callables/objects, we can't create a reliable cache key, so use object hash
         $parts = [
             $class,
-            $queryBuilder !== null ? spl_object_hash($queryBuilder) : 'null',
+            $queryBuilder !== null ? spl_object_hash(\is_object($queryBuilder) ? $queryBuilder : \Closure::fromCallable($queryBuilder)) : 'null',
             is_callable($choiceLabel) ? spl_object_hash($choiceLabel) : (string) $choiceLabel,
             is_callable($choiceValue) ? spl_object_hash($choiceValue) : (string) $choiceValue,
         ];
