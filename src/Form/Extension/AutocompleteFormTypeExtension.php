@@ -25,6 +25,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             'limit' => 10,
             'theme' => null,
             'floating_label' => null,
+            'extra_params' => [],
         ]);
 
         $resolver->setAllowedTypes('autocomplete', 'bool');
@@ -34,6 +35,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('limit', 'int');
         $resolver->setAllowedTypes('theme', ['null', 'string']);
         $resolver->setAllowedTypes('floating_label', ['null', 'bool']);
+        $resolver->setAllowedTypes('extra_params', 'array');
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
@@ -53,6 +55,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         $view->vars['block_prefixes'] = array_values(array_unique($prefixes));
         $view->vars['floating_label'] = $options['floating_label'] === true;
+        $view->vars['extra_params'] = $options['extra_params'];
 
         if ($options['floating_label'] === true) {
             $rowAttr = $view->vars['row_attr'] ?? [];

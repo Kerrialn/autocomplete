@@ -46,6 +46,9 @@
 {% endif %}
 {% set url_value = url_value ~ (url_value matches '/\\?/' ? '&' : '?') ~ 'locale=' ~ current_locale|url_encode %}
 
+{% for key, val in (extra_params is defined ? extra_params : {}) %}
+    {% set url_value = url_value ~ '&' ~ key|url_encode ~ '=' ~ val|url_encode %}
+{% endfor %}
 {% set url_value = url_value ~ '&ts=' ~ sig.ts ~ '&sig=' ~ sig.sig %}
 
 {% if selected_label is defined and selected_label and td is not same as(false) %}

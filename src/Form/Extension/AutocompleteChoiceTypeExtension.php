@@ -56,6 +56,17 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
                 return $choiceLoader;
             }
 
+            // EntityType (and EnumType) define a 'class' option and manage
+            // their own choice_loader. EntityType is handled separately by
+            // AutocompleteEntityTypeExtension — don't replace its loader.
+            try {
+                if ($options['class'] ?? null) {
+                    return $choiceLoader;
+                }
+            } catch (\Throwable) {
+                // 'class' option not defined — not an EntityType/EnumType
+            }
+
             return new AutocompleteChoiceLoader();
         });
 

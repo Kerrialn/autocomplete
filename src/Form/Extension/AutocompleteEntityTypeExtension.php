@@ -117,12 +117,34 @@ final class AutocompleteEntityTypeExtension extends AbstractTypeExtension
             throw new \InvalidArgumentException('EntityType requires "class" option.');
         }
 
+        $queryBuilder = $options['query_builder'] ?? null;
         $choiceLabel = $this->normalizeChoiceOption($options['choice_label'] ?? null);
         $choiceValue = $this->normalizeChoiceOption($options['choice_value'] ?? null);
 
+        // Closures cannot survive the HTTP boundary between form rendering
+        // and the AJAX search request. Warn developers early so they know
+        // to create a custom provider instead.
+        if ($queryBuilder !== null) {
+            throw new \LogicException(sprintf(
+                'EntityType "%s" with autocomplete does not support the "query_builder" option '
+                . 'because closures cannot be sent to the AJAX search endpoint. '
+                . 'Create a custom provider (implementing AutocompleteProviderInterface) '
+                . 'and pass its class or service name via the "provider" option instead.',
+                $class,
+            ));
+        }
+
+        if ($choiceLabel instanceof \Closure) {
+            throw new \LogicException(sprintf(
+                'EntityType "%s" with autocomplete does not support a closure "choice_label" '
+                . 'because closures cannot be sent to the AJAX search endpoint. '
+                . 'Use a string property path (e.g. "name") or create a custom provider instead.',
+                $class,
+            ));
+        }
+
         $this->providerFactory->createProvider(
             class: $class,
-            queryBuilder: $options['query_builder'] ?? null,
             choiceLabel: $choiceLabel,
             choiceValue: $choiceValue,
         );
