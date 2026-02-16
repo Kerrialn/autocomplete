@@ -3,9 +3,15 @@
     {% set td = null %}
 {% endif %}
 
-{% set raw_label = item.label is iterable ? (item.label.label|default(item.id)) : item.label %}
+{% set raw_label = item.label|default('') %}
+{% if raw_label is iterable %}
+    {% set raw_label = raw_label.label|default(raw_label.id|default('')) %}
+{% endif %}
+{% if raw_label is iterable %}
+    {% set raw_label = raw_label|join(', ') %}
+{% endif %}
 {% set label_text = raw_label %}
-{% if td is not same as(false) %}
+{% if td is not same as(false) and raw_label is not iterable %}
     {% if td is null %}
         {% set label_text = raw_label|trans %}
     {% else %}
