@@ -1,7 +1,7 @@
 # Symfony Autocomplete Bundle
 
 Server-side rendered autocomplete for Symfony. No Tom Select, no build step. Twig templates + Stimulus.
-Highly customizable, just override the twig template. 
+Highly customizable, just override the twig template.
 
 ## Installation
 
@@ -16,7 +16,7 @@ autocomplete:
     resource: '@AutocompleteBundle/config/routes.php'
 ```
 
-or 
+or
 
 ```php
 return static function (RoutingConfigurator $routingConfigurator): void {
@@ -31,9 +31,9 @@ twig:
     form_themes:
         - '@Autocomplete/form/autocomplete_widget.html.twig'
 ```
-or 
+or
 
-```php 
+```php
 return static function (ContainerConfigurator $containerConfigurator): void {
     $containerConfigurator->extension('twig', [
             'form_themes' => [
@@ -64,12 +64,12 @@ Requires `APP_SECRET` in your `.env` for HMAC-signed requests.
 use Kerrialnewham\Autocomplete\Form\Type\AutocompleteType;
 
 $builder->add('user', AutocompleteType::class, [
-    'provider' => 'users',
+    'provider' => UserProvider::class,
     'placeholder' => 'Search for a user...',
 ]);
 
 $builder->add('tags', AutocompleteType::class, [
-    'provider' => 'tags',
+    'provider' => TagProvider::class,
     'multiple' => true,
     'theme' => 'dark',
     'min_chars' => 2,
@@ -80,13 +80,15 @@ $builder->add('tags', AutocompleteType::class, [
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `provider` | string | `'default'` | Provider name |
+| `provider` | string | `null` | Provider FQCN (e.g. `UserProvider::class`) |
 | `multiple` | bool | `false` | Multiple selections |
 | `placeholder` | string | `'Search...'` | Placeholder text |
 | `min_chars` | int | `1` | Min characters before search |
 | `debounce` | int | `300` | Debounce in ms |
 | `limit` | int | `10` | Max results |
 | `theme` | string\|null | `null` | Theme name |
+| `floating_label` | bool\|null | `null` | Bootstrap 5 floating label support |
+| `extra_params` | array | `[]` | Extra query parameters passed to the provider |
 | `attr` | array | `[]` | HTML attributes |
 
 ### InternationalDialCodeType
@@ -136,18 +138,24 @@ $builder->add('locale', LocaleType::class, [
 ]);
 ```
 
+**Note:** EntityType with `autocomplete: true` does not support the `query_builder` or closure-based `choice_label` options, because closures cannot survive the HTTP boundary between form rendering and the AJAX search request. Use a string `choice_label` (e.g. `'name'`) or create a [custom provider](#custom-provider) instead.
+
 ## Providers
+
+Providers are identified by their **fully qualified class name (FQCN)**. The `AutocompleteProviderInterface` has a single `search()` method — no `getName()` required.
 
 ### Built-in
 
-| Name | Data |
-|------|------|
-| `symfony_countries` | Countries |
-| `symfony_languages` | Languages |
-| `symfony_locales` | Locales |
-| `symfony_currencies` | Currencies |
-| `symfony_timezones` | Timezones |
-| `symfony_dial_codes` | Dial codes with flag emoji |
+The built-in Symfony Intl providers are resolved automatically when using the corresponding form types with `autocomplete: true` (CountryType, LanguageType, etc.).
+
+| Provider | Data |
+|----------|------|
+| `CountryProvider` | Countries |
+| `LanguageProvider` | Languages |
+| `LocaleProvider` | Locales |
+| `CurrencyProvider` | Currencies |
+| `TimezoneProvider` | Timezones |
+| `DialCodeProvider` | Dial codes with flag emoji |
 
 ### Custom Provider
 
@@ -162,11 +170,6 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 class UserProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
     public function __construct(private readonly UserRepository $userRepository) {}
-
-    public function getName(): string
-    {
-        return 'users';
-    }
 
     public function search(string $query, int $limit, array $selected): array
     {
@@ -191,17 +194,99 @@ class UserProvider implements AutocompleteProviderInterface, ChipProviderInterfa
 }
 ```
 
+Reference the provider by its class name:
+
+```php
+$builder->add('user', AutocompleteType::class, [
+    'provider' => UserProvider::class,
+]);
+```
+
 Results must return `id` (required), `label` (required), and `meta` (optional).
+
+### Extra Parameters
+
+Use `extra_params` to pass context to your provider via the AJAX request. This is useful for dependent/filtered selects where the provider needs runtime context (e.g. filtering cities by the selected country).
+
+```php
+$builder->add('city', AutocompleteType::class, [
+    'provider' => CityProvider::class,
+    'extra_params' => [
+        'country' => $country->getId(),
+    ],
+]);
+```
+
+Read them in your provider via `RequestStack`:
+
+```php
+use Symfony\Component\HttpFoundation\RequestStack;
+
+#[AutoconfigureTag('autocomplete.provider')]
+class CityProvider implements AutocompleteProviderInterface
+{
+    public function __construct(
+        private readonly CityRepository $cityRepository,
+        private readonly RequestStack $requestStack,
+    ) {}
+
+    public function search(string $query, int $limit, array $selected): array
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        $countryId = $request?->query->get('country');
+
+        $qb = $this->cityRepository->createQueryBuilder('c')
+            ->leftJoin('c.country', 'country')
+            ->orderBy('c.name', 'ASC');
+
+        if ($countryId) {
+            $qb->andWhere('country.id = :country')
+                ->setParameter('country', $countryId, 'uuid');
+        }
+
+        if (!empty($selected)) {
+            $qb->andWhere($qb->expr()->notIn('c.id', ':selected'))
+                ->setParameter('selected', $selected);
+        }
+
+        $cities = $qb->getQuery()->getResult();
+
+        $results = [];
+        foreach ($cities as $city) {
+            $label = $city->getName();
+
+            if ($query !== '' && !str_contains(mb_strtolower($label), mb_strtolower($query))) {
+                continue;
+            }
+
+            $results[] = ['id' => (string) $city->getId(), 'label' => $label];
+        }
+
+        return array_slice($results, 0, $limit);
+    }
+}
+```
 
 ### Overriding Entity Providers
 
-Auto-generated providers use the name `entity.App\Entity\ClassName`. Create a provider with the same name to override:
+When using `EntityType` with `autocomplete: true`, a provider is auto-generated using the entity FQCN as the provider name (e.g. `App\Entity\User`). To override it, register a custom provider under the same name:
 
 ```php
-public function getName(): string
+#[AutoconfigureTag('autocomplete.provider')]
+class UserProvider implements AutocompleteProviderInterface, ChipProviderInterface
 {
-    return 'entity.App\Entity\User';
+    // ... your custom search/get logic
 }
+```
+
+Then pass it via the `provider` option:
+
+```php
+$builder->add('author', EntityType::class, [
+    'class' => User::class,
+    'provider' => UserProvider::class,
+    'autocomplete' => true,
+]);
 ```
 
 ## Security
@@ -253,10 +338,24 @@ Maps to `VARCHAR(20)`.
 
 ```php
 $builder->add('country', AutocompleteType::class, [
-    'provider' => 'countries',
+    'provider' => CountryProvider::class,
     'theme' => 'dark',
 ]);
 ```
+
+### Floating Labels (Bootstrap 5)
+
+The `bootstrap-5` theme supports Bootstrap 5 floating labels. Set `floating_label` to `true`:
+
+```php
+$builder->add('country', CountryType::class, [
+    'autocomplete' => true,
+    'theme' => 'bootstrap-5',
+    'floating_label' => true,
+]);
+```
+
+The label floats up on focus and when the input has content. Without `floating_label`, the label renders above the input as usual.
 
 ### Overriding Templates
 
@@ -322,7 +421,7 @@ Target all themes:
 
 ```php
 $builder->add('field', AutocompleteType::class, [
-    'provider' => 'users',
+    'provider' => UserProvider::class,
     'theme' => 'my-theme',
 ]);
 ```
