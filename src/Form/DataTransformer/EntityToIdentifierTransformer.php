@@ -77,6 +77,12 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
             $entities = [];
 
             foreach ($ids as $id) {
+                // Handle the case where submitted data contains {id, label} arrays
+                // instead of plain ID strings (can happen on form re-submission)
+                if (\is_array($id)) {
+                    $id = $id['id'] ?? null;
+                }
+
                 if ($id === null || $id === '') {
                     continue;
                 }

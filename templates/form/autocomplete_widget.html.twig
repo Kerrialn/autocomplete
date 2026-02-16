@@ -16,7 +16,12 @@
         {% set normalized = [] %}
         {% for item in value_for_widget %}
             {% if item is iterable and item.id is defined %}
-                {% set normalized = normalized|merge([item]) %}
+                {# Ensure label is always a string (it may be an array on re-submission) #}
+                {% if item.label is defined and item.label is iterable %}
+                    {% set normalized = normalized|merge([{id: item.id, label: item.label.label|default(item.id)}]) %}
+                {% else %}
+                    {% set normalized = normalized|merge([item]) %}
+                {% endif %}
             {% elseif item is not null and item != '' %}
                 {% set normalized = normalized|merge([{id: item, label: item}]) %}
             {% endif %}
