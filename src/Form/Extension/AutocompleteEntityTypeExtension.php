@@ -87,11 +87,47 @@ final class AutocompleteEntityTypeExtension extends AbstractTypeExtension
         $view->vars['autocomplete_choice_label'] = \is_string($cl) ? $cl : null;
         $view->vars['autocomplete_choice_value'] = \is_string($cv) ? $cv : null;
 
-        // For single-select, resolve the label of the currently selected entity
         $view->vars['selected_label'] = null;
         $multiple = $options['multiple'] ?? false;
 
-        if (!$multiple) {
+        if ($multiple) {
+            // Build {id, label} items for chip rendering from norm data (entities).
+            // These go into a separate var so $view->vars['value'] stays as
+            // scalar IDs (Symfony's ChoiceType expects that).
+            $normData = $form->getNormData();
+            $items = [];
+
+            if (\is_iterable($normData)) {
+                $accessor = PropertyAccess::createPropertyAccessor();
+
+                foreach ($normData as $entity) {
+                    if ($entity === null) {
+                        continue;
+                    }
+
+                    $id = \is_string($cv) && $cv !== ''
+                        ? (string) $accessor->getValue($entity, $cv)
+                        : (string) $accessor->getValue($entity, 'id');
+
+                    $label = $id;
+                    try {
+                        if (\is_string($cl) && $cl !== '') {
+                            $label = (string) $accessor->getValue($entity, $cl);
+                        } elseif ($cl instanceof \Closure) {
+                            $label = (string) $cl($entity);
+                        } elseif (method_exists($entity, '__toString')) {
+                            $label = (string) $entity;
+                        }
+                    } catch (\Exception) {
+                    }
+
+                    $items[] = ['id' => $id, 'label' => $label];
+                }
+            }
+
+            $view->vars['selected_items'] = $items;
+        } else {
+            // For single-select, resolve the label of the currently selected entity
             $normData = $form->getNormData();
 
             if ($normData !== null && \is_object($normData)) {

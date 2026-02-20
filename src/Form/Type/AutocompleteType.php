@@ -35,7 +35,7 @@ class AutocompleteType extends AbstractType
         $resolver->setDefaults([
             'provider' => null,
             'multiple' => false,
-            'placeholder' => 'Search...',
+            'placeholder' => null,
             'min_chars' => 1,
             'debounce' => 300,
             'limit' => 10,
@@ -46,7 +46,7 @@ class AutocompleteType extends AbstractType
 
         $resolver->setAllowedTypes('provider', ['string', 'null']);
         $resolver->setAllowedTypes('multiple', 'bool');
-        $resolver->setAllowedTypes('placeholder', 'string');
+        $resolver->setAllowedTypes('placeholder', ['string', 'null']);
         $resolver->setAllowedTypes('min_chars', 'int');
         $resolver->setAllowedTypes('debounce', 'int');
         $resolver->setAllowedTypes('limit', 'int');

@@ -112,6 +112,7 @@ return static function (ContainerConfigurator $container): void {
 
     // Shared options (autocomplete, provider, min_chars, etc.) + block prefix injection
     $services->set(AutocompleteFormTypeExtension::class)
+        ->autowire()
         ->tag('form.type_extension');
 
     // Choice-based types (EnumType, CountryType, LanguageType, LocaleType, CurrencyType, TimezoneType)

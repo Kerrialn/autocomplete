@@ -41,18 +41,17 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
                 return [];
             }
 
-            $items = [];
+            // Return scalar IDs only — Symfony's ChoiceType expects value
+            // to be an array of strings. The {id, label} items for chip
+            // rendering are built separately in buildView (selected_items).
+            $ids = [];
             foreach ($value as $entity) {
                 if ($entity !== null) {
-                    $id = $this->extractId($entity);
-                    $items[] = [
-                        'id' => $id,
-                        'label' => method_exists($entity, '__toString') ? (string) $entity : $id,
-                    ];
+                    $ids[] = $this->extractId($entity);
                 }
             }
 
-            return $items;
+            return $ids;
         }
 
         // Single mode

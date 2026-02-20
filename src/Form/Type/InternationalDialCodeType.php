@@ -14,7 +14,7 @@ class InternationalDialCodeType extends AbstractType
         $resolver->setDefaults([
             'autocomplete' => true,
             'provider' => DialCodeProvider::class,
-            'placeholder' => 'Select dialing code...',
+            'placeholder' => null,
         ]);
     }
 
