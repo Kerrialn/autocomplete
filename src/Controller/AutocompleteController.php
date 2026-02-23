@@ -2,6 +2,7 @@
 
 namespace Kerrialnewham\Autocomplete\Controller;
 
+use Kerrialnewham\Autocomplete\Provider\Choice\ChoicesProvider;
 use Kerrialnewham\Autocomplete\Provider\Choice\EnumProvider;
 use Kerrialnewham\Autocomplete\Provider\Contract\AutocompleteProviderInterface;
 use Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface;
@@ -105,7 +106,22 @@ final class AutocompleteController extends AbstractController
             return $this->providerRegistry->get($providerName);
         }
 
-        // 2. Doctrine entity: class exists and is a managed entity
+        // 2. Static choices encoded in provider name (choices.{base64url-json})
+        if (str_starts_with($providerName, 'choices.')) {
+            $encoded = substr($providerName, strlen('choices.'));
+            try {
+                $choices = json_decode(base64_decode(strtr($encoded, '-_', '+/')), true, 512, \JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                throw new BadRequestHttpException('Invalid choices provider encoding.');
+            }
+            if (!\is_array($choices)) {
+                throw new BadRequestHttpException('Invalid choices provider encoding.');
+            }
+
+            return new ChoicesProvider($choices);
+        }
+
+        // 3. Doctrine entity: class exists and is a managed entity
         if ($this->entityProviderFactory !== null && class_exists($providerName) && $this->isDoctrineEntity($providerName)) {
             $choiceLabel = (string) $request->query->get('choice_label', '');
             $choiceValue = (string) $request->query->get('choice_value', '');
@@ -118,7 +134,7 @@ final class AutocompleteController extends AbstractController
             );
         }
 
-        // 3. Backed enum
+        // 4. Backed enum
         if (enum_exists($providerName) && is_subclass_of($providerName, \BackedEnum::class)) {
             $choiceLabel = (string) $request->query->get('choice_label', '');
             $translationDomain = $request->query->get('translation_domain');
@@ -140,7 +156,7 @@ final class AutocompleteController extends AbstractController
             return $provider;
         }
 
-        // 4. Fall through to registry (throws)
+        // 5. Fall through to registry (throws)
         return $this->providerRegistry->get($providerName);
     }
 

@@ -120,7 +120,9 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
                 $choices = $options['choices'] ?? [];
 
                 if (!empty($choices) && \is_array($choices)) {
-                    $providerName = 'choices_' . md5(serialize($choices));
+                    $encoded = rtrim(strtr(base64_encode(json_encode($choices, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE)), '+/', '-_'), '=');
+                    $providerName = 'choices.' . $encoded;
+                    // Register for the current request (e.g. selected_label resolution)
                     if (!$this->providerRegistry->has($providerName)) {
                         $this->providerRegistry->register(new ChoicesProvider($choices), $providerName);
                     }
