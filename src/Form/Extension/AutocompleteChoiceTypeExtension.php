@@ -4,6 +4,7 @@ namespace Kerrialnewham\Autocomplete\Form\Extension;
 
 use Kerrialnewham\Autocomplete\Form\ChoiceLoader\AutocompleteChoiceLoader;
 use Kerrialnewham\Autocomplete\Form\Type\InternationalDialCodeType;
+use Kerrialnewham\Autocomplete\Provider\Choice\ChoicesProvider;
 use Kerrialnewham\Autocomplete\Provider\Choice\EnumProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CountryProvider;
 use Kerrialnewham\Autocomplete\Provider\Provider\Symfony\CurrencyProvider;
@@ -112,16 +113,26 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
         $provider = $options['provider'];
 
         if ($provider === null || $provider === '') {
-            $provider = match (true) {
-                $inner instanceof EnumType => $this->resolveEnumProvider($options),
-                $inner instanceof CountryType => CountryProvider::class,
-                $inner instanceof LanguageType => LanguageProvider::class,
-                $inner instanceof LocaleType => LocaleProvider::class,
-                $inner instanceof CurrencyType => CurrencyProvider::class,
-                $inner instanceof TimezoneType => TimezoneProvider::class,
-                $inner instanceof InternationalDialCodeType => DialCodeProvider::class,
-                default => null,
-            };
+            $choices = $options['choices'] ?? [];
+
+            if (!empty($choices) && \is_array($choices)) {
+                $providerName = 'choices_' . md5(serialize($choices));
+                if (!$this->providerRegistry->has($providerName)) {
+                    $this->providerRegistry->register(new ChoicesProvider($choices), $providerName);
+                }
+                $provider = $providerName;
+            } else {
+                $provider = match (true) {
+                    $inner instanceof EnumType => $this->resolveEnumProvider($options),
+                    $inner instanceof CountryType => CountryProvider::class,
+                    $inner instanceof LanguageType => LanguageProvider::class,
+                    $inner instanceof LocaleType => LocaleProvider::class,
+                    $inner instanceof CurrencyType => CurrencyProvider::class,
+                    $inner instanceof TimezoneType => TimezoneProvider::class,
+                    $inner instanceof InternationalDialCodeType => DialCodeProvider::class,
+                    default => null,
+                };
+            }
         }
 
         if ($provider === null || $provider === '') {
