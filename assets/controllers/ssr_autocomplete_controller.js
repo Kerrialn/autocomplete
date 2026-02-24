@@ -19,7 +19,8 @@ export default class extends Controller {
         debounce: { type: Number, default: 300 },
         limit: { type: Number, default: 10 },
         url: String,
-        name: String
+        name: String,
+        chipSize: { type: String, default: 'md' }
     };
 
     connect() {
@@ -307,7 +308,7 @@ export default class extends Controller {
     /**
      * Builds the chip URL based on urlValue.
      * If urlValue is "/_autocomplete/users?theme=foo", chip URL becomes
-     * "/_autocomplete/users/chip?theme=foo&id=...&name=..."
+     * "/_autocomplete/users/chip?theme=foo&id=...&name=...&chip_size=..."
      */
     buildChipUrl(id) {
         const searchUrl = new URL(this.urlValue, window.location.origin);
@@ -321,6 +322,7 @@ export default class extends Controller {
 
         chipUrl.searchParams.set('id', id);
         chipUrl.searchParams.set('name', this.getInputName());
+        chipUrl.searchParams.set('chip_size', this.chipSizeValue);
 
         return chipUrl.toString();
     }

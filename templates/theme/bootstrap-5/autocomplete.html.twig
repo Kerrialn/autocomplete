@@ -76,7 +76,24 @@
      data-kerrialnewham--autocomplete--ssr-autocomplete-limit-value="{{ limit }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-url-value="{{ url_value }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-name-value="{{ name ends with '[]' ? name|slice(0, -2) : name }}"
+     data-kerrialnewham--autocomplete--ssr-autocomplete-chip-size-value="{{ chip_size }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
+
+    {% if multiple %}
+        <div class="d-flex flex-wrap gap-1 mb-2"
+             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
+            {% if selected_items is defined and selected_items is not empty %}
+                {% for item in selected_items %}
+                    {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
+                        item: item,
+                        name: name,
+                        translation_domain: td,
+                        chip_size: chip_size
+                    } %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
 
     <div class="position-relative">
         <input type="text"
@@ -107,22 +124,6 @@
             </div>
         </div>
     </div>
-
-    {% if multiple %}
-        <div class="d-flex flex-wrap gap-1 mt-2"
-             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
-            {% if selected_items is defined and selected_items is not empty %}
-                {% for item in selected_items %}
-                    {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
-                        item: item,
-                        name: name,
-                        translation_domain: td,
-                        chip_size: chip_size
-                    } %}
-                {% endfor %}
-            {% endif %}
-        </div>
-    {% endif %}
 
     {% if not multiple %}
         <input type="hidden"

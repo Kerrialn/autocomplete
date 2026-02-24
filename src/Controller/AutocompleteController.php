@@ -92,10 +92,13 @@ final class AutocompleteController extends AbstractController
             $translationDomain = null;
         }
 
+        $chipSize = (string) $request->query->get('chip_size', 'md');
+
         return $this->render($this->templates->chip($theme), [
             'item' => $item,
             'name' => $inputName,
             'translation_domain' => $translationDomain,
+            'chip_size' => $chipSize,
         ]);
     }
 

@@ -753,13 +753,13 @@
     position: relative;
 }
 
-/* Position chips container below the form-floating wrapper */
+/* Chips are above the input, so add bottom margin */
 .form-floating [data-autocomplete-floating] [data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"] {
-    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
-/* Ensure input maintains proper height when chips are present */
-.form-floating [data-autocomplete-floating].has-chips .form-control {
+/* Ensure input maintains proper height */
+.form-floating [data-autocomplete-floating] .form-control {
     height: calc(3.5rem + calc(var(--bs-border-width) * 2));
 }
 
@@ -769,7 +769,7 @@
     transform: scale(.85) translateY(-.5rem) translateX(.15rem);
 }
 
-/* Ensure chips don't overlap with input */
+/* Ensure input has proper padding when chips are present */
 .form-floating [data-autocomplete-floating].has-chips .form-control {
     padding-top: 1.625rem;
     padding-bottom: .625rem;
