@@ -18,6 +18,9 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\ChoiceList\Factory\Cache\AbstractStaticOption;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\CurrencyType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -44,6 +47,23 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
     public static function getExtendedTypes(): iterable
     {
         return [ChoiceType::class];
+    }
+
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        if (!$options['autocomplete'] || !($options['multiple'] ?? false)) {
+            return;
+        }
+
+        // Strip empty strings from submitted array before the ChoicesToValuesTransformer
+        // runs its count check. Empty hidden inputs (e.g. from chips with no value) would
+        // otherwise cause a count mismatch and trigger "Please select a valid X."
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, static function (FormEvent $event): void {
+            $data = $event->getData();
+            if (\is_array($data)) {
+                $event->setData(array_values(array_filter($data, static fn ($v) => $v !== '' && $v !== null)));
+            }
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
