@@ -44,7 +44,31 @@ final class AutocompleteChoiceLoader implements ChoiceLoaderInterface
 
             public function getChoicesForValues(array $values): array
             {
-                return array_values(array_filter($values, static fn ($v) => $v !== '' && $v !== null));
+                $normalized = [];
+                foreach ($values as $value) {
+                    // Handle {id, label} objects that may be submitted when chips are pre-rendered
+                    if (\is_array($value)) {
+                        if (isset($value['id'])) {
+                            $id = $value['id'];
+                            
+                            // Handle nested structures
+                            while (\is_array($id) && isset($id['id'])) {
+                                $id = $id['id'];
+                            }
+                            
+                            $value = $id;
+                        } else {
+                            // No 'id' key, skip this entry
+                            continue;
+                        }
+                    }
+                    
+                    // Filter out empty values
+                    if ($value !== '' && $value !== null && $value !== []) {
+                        $normalized[] = $value;
+                    }
+                }
+                return array_values($normalized);
             }
 
             public function getValuesForChoices(array $choices): array
@@ -56,7 +80,31 @@ final class AutocompleteChoiceLoader implements ChoiceLoaderInterface
 
     public function loadChoicesForValues(array $values, callable $value = null): array
     {
-        return array_values(array_filter($values, static fn ($v) => $v !== '' && $v !== null));
+        $normalized = [];
+        foreach ($values as $val) {
+            // Handle {id, label} objects that may be submitted when chips are pre-rendered
+            if (\is_array($val)) {
+                if (isset($val['id'])) {
+                    $id = $val['id'];
+                    
+                    // Handle nested structures
+                    while (\is_array($id) && isset($id['id'])) {
+                        $id = $id['id'];
+                    }
+                    
+                    $val = $id;
+                } else {
+                    // No 'id' key, skip this entry
+                    continue;
+                }
+            }
+            
+            // Filter out empty values
+            if ($val !== '' && $val !== null && $val !== []) {
+                $normalized[] = $val;
+            }
+        }
+        return array_values($normalized);
     }
 
     public function loadValuesForChoices(array $choices, callable $value = null): array
