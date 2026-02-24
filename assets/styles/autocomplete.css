@@ -753,9 +753,19 @@
     position: relative;
 }
 
-/* Chips are above the input, so add bottom margin */
-.form-floating [data-autocomplete-floating] [data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"] {
+/* When floating label is active, position chips absolutely ABOVE the form-floating container */
+.form-floating:has([data-autocomplete-floating]) [data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"] {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
     margin-bottom: 0.5rem;
+    z-index: 1;
+}
+
+/* Add top margin to the form-floating container when chips are present */
+.form-floating:has([data-autocomplete-floating].has-chips) {
+    margin-top: 3rem;
 }
 
 /* Ensure input maintains proper height */
