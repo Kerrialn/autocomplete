@@ -51,13 +51,8 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        if (!$options['autocomplete'] || !($options['multiple'] ?? false)) {
-            return;
-        }
-
-        // Add a data transformer to normalize submitted data BEFORE it reaches ChoiceType validation
-        // This runs earlier in the form processing pipeline than PRE_SUBMIT events
-        $builder->addModelTransformer(new \Kerrialnewham\Autocomplete\Form\DataTransformer\ArrayNormalizerTransformer(), true);
+        // No additional form building needed for ChoiceType autocomplete fields
+        // The chip templates now correctly handle the field name to avoid nested arrays
     }
 
     public function configureOptions(OptionsResolver $resolver): void

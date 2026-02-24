@@ -67,20 +67,6 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
      */
     public function reverseTransform(mixed $value): mixed
     {
-        // Debug logging to track incoming data format
-        if ($_ENV['APP_DEBUG'] ?? false) {
-            trigger_error(
-                sprintf(
-                    '[EntityToIdentifierTransformer] reverseTransform called for class "%s", multiple=%s, value type=%s, value=%s',
-                    $this->class,
-                    $this->multiple ? 'true' : 'false',
-                    get_debug_type($value),
-                    json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
-                ),
-                E_USER_NOTICE
-            );
-        }
-
         if ($this->multiple) {
             if ($value === null || $value === '' || $value === []) {
                 return [];
@@ -117,30 +103,10 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
                 
                 // Ensure we have a scalar value
                 if (\is_array($id)) {
-                    trigger_error(
-                        sprintf(
-                            '[EntityToIdentifierTransformer] Skipping non-scalar ID after normalization for class "%s": %s',
-                            $this->class,
-                            json_encode($id, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
-                        ),
-                        E_USER_WARNING
-                    );
                     continue;
                 }
                 
                 $normalizedIds[] = $id;
-            }
-            
-            // Debug logging for normalized IDs
-            if ($_ENV['APP_DEBUG'] ?? false) {
-                trigger_error(
-                    sprintf(
-                        '[EntityToIdentifierTransformer] Normalized IDs for class "%s": %s',
-                        $this->class,
-                        json_encode($normalizedIds, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
-                    ),
-                    E_USER_NOTICE
-                );
             }
             
             $entities = [];
@@ -149,31 +115,10 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
                     $entity = $this->findEntity($id);
                     if ($entity !== null) {
                         $entities[] = $entity;
-                    } else {
-                        trigger_error(
-                            sprintf('Entity "%s" with ID "%s" not found, skipping.', $this->class, $id),
-                            E_USER_WARNING
-                        );
                     }
                 } catch (\Exception $e) {
-                    trigger_error(
-                        sprintf('Error loading entity "%s" with ID "%s": %s', $this->class, $id, $e->getMessage()),
-                        E_USER_WARNING
-                    );
+                    // Skip entities that can't be loaded
                 }
-            }
-
-            // Debug logging for final result
-            if ($_ENV['APP_DEBUG'] ?? false) {
-                trigger_error(
-                    sprintf(
-                        '[EntityToIdentifierTransformer] reverseTransform result for class "%s": %d entities loaded from %d IDs',
-                        $this->class,
-                        count($entities),
-                        count($normalizedIds)
-                    ),
-                    E_USER_NOTICE
-                );
             }
 
             return $entities;
