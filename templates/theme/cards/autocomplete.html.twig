@@ -74,8 +74,8 @@
 
     {% if multiple %}
         <div class="autocomplete-chips" data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
-            {% if value is defined and value is iterable %}
-                {% for item in value %}
+            {% if selected_items is defined and selected_items is not empty %}
+                {% for item in selected_items %}
                     {% include '@Autocomplete/theme/cards/_chip.html.twig' with {
                         item: item,
                         name: name,

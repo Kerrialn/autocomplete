@@ -218,6 +218,30 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
                 }
             }
         }
+
+        // For multiple-select, resolve labels for pre-selected values via the provider
+        // so templates receive [{id, label}] items rather than raw scalar values
+        if ($multiple) {
+            $normData = $form->getNormData();
+            $providerInstance = $this->providerRegistry->has($provider) ? $this->providerRegistry->get($provider) : null;
+            $selectedItems = [];
+
+            foreach ((array) $normData as $item) {
+                $id = $item instanceof \BackedEnum ? (string) $item->value : (string) $item;
+                if ($id === '') {
+                    continue;
+                }
+
+                if ($providerInstance instanceof \Kerrialnewham\Autocomplete\Provider\Contract\ChipProviderInterface) {
+                    $resolved = $providerInstance->get($id);
+                    $selectedItems[] = $resolved ?? ['id' => $id, 'label' => $id];
+                } else {
+                    $selectedItems[] = ['id' => $id, 'label' => $id];
+                }
+            }
+
+            $view->vars['selected_items'] = $selectedItems;
+        }
     }
 
     private function resolveEnumProvider(array $options): string
