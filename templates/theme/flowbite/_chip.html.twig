@@ -40,7 +40,7 @@
     </button>
 
     <input type="hidden"
-           name="{{ name }}[]"
+           name="{{ name }}{{ name ends with '[]' ? '' : '[]' }}"
            value="{{ item.id }}"
            data-kerrialnewham--autocomplete--ssr-autocomplete-target="selectedInput">
 </div>
