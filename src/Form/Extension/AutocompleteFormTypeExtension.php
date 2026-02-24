@@ -34,6 +34,7 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
             'extra_params' => [],
             'autocomplete_choice_label' => null,
             'autocomplete_choice_value' => null,
+            'chip_size' => 'md',
         ]);
 
         $resolver->setAllowedTypes('autocomplete', 'bool');
@@ -46,6 +47,9 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
         $resolver->setAllowedTypes('extra_params', 'array');
         $resolver->setAllowedTypes('autocomplete_choice_label', ['null', 'string']);
         $resolver->setAllowedTypes('autocomplete_choice_value', ['null', 'string']);
+        $resolver->setAllowedTypes('chip_size', 'string');
+        
+        $resolver->setAllowedValues('chip_size', ['sm', 'md', 'lg', 'xl']);
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
@@ -107,6 +111,10 @@ final class AutocompleteFormTypeExtension extends AbstractTypeExtension
 
         if (!isset($view->vars['selected_label'])) {
             $view->vars['selected_label'] = null;
+        }
+        
+        if (!isset($view->vars['chip_size'])) {
+            $view->vars['chip_size'] = $options['chip_size'];
         }
     }
 }

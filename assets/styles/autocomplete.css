@@ -731,3 +731,19 @@
     z-index: 1;
     pointer-events: none;
 }
+
+/* Bootstrap-5 chip size variants */
+.badge-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.badge-lg {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.badge-xl {
+    font-size: 1.125rem;
+    padding: 0.625rem 1rem;
+}

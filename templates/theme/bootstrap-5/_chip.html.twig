@@ -3,6 +3,20 @@
     {% set td = null %}
 {% endif %}
 
+{% set chip_size = chip_size|default('md') %}
+{% set size_classes = {
+    'sm': 'badge-sm',
+    'md': '',
+    'lg': 'badge-lg',
+    'xl': 'badge-xl'
+} %}
+{% set button_sizes = {
+    'sm': {'width': '16px', 'height': '16px', 'font': '12px'},
+    'md': {'width': '20px', 'height': '20px', 'font': '16px'},
+    'lg': {'width': '24px', 'height': '24px', 'font': '20px'},
+    'xl': {'width': '28px', 'height': '28px', 'font': '24px'}
+} %}
+
 {% set raw_label = item.label|default('') %}
 {% if raw_label is iterable %}
     {% set raw_label = raw_label.label|default(raw_label.id|default('')) %}
@@ -19,17 +33,17 @@
     {% endif %}
 {% endif %}
 
-<span class="badge text-bg-primary rounded-pill d-flex align-items-center justify-content-between gap-2"
+<span class="badge text-bg-primary rounded-pill d-flex align-items-center justify-content-between gap-2 {{ size_classes[chip_size] }}"
       data-kerrialnewham--autocomplete--ssr-autocomplete-target="chip"
       data-autocomplete-chip-value="{{ item.id }}">
     <span>{{ label_text }}</span>
 
     <button type="button"
             class="btn btn-sm btn-primary border-0 rounded-circle p-0 d-flex align-items-center justify-content-center"
-            style="width: 20px; height: 20px; margin-left: 4px;"
+            style="width: {{ button_sizes[chip_size].width }}; height: {{ button_sizes[chip_size].height }}; margin-left: 4px;"
             aria-label="Remove {{ label_text }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
-        <i class="bi bi-x" style="font-size: 16px; line-height: 1;"></i>
+        <i class="bi bi-x" style="font-size: {{ button_sizes[chip_size].font }}; line-height: 1;"></i>
     </button>
 
     <input type="hidden"
