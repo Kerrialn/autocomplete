@@ -55,15 +55,41 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        // Strip empty strings from submitted array before the ChoicesToValuesTransformer
-        // runs its count check. Empty hidden inputs (e.g. from chips with no value) would
-        // otherwise cause a count mismatch and trigger "Please select a valid X."
+        // Normalize submitted data: handle {id, label} objects from pre-filled chips
+        // and strip empty strings before the ChoicesToValuesTransformer runs its count check.
+        // Empty hidden inputs (e.g. from chips with no value) would otherwise cause a count
+        // mismatch and trigger "Please select a valid X."
+        // CRITICAL: Use priority 100 to run BEFORE Symfony's ChoiceType validation
         $builder->addEventListener(FormEvents::PRE_SUBMIT, static function (FormEvent $event): void {
             $data = $event->getData();
             if (\is_array($data)) {
-                $event->setData(array_values(array_filter($data, static fn ($v) => $v !== '' && $v !== null)));
+                $normalized = [];
+                foreach ($data as $item) {
+                    // Handle {id, label} objects that may be submitted when chips are pre-rendered
+                    if (\is_array($item)) {
+                        if (isset($item['id'])) {
+                            $id = $item['id'];
+                            
+                            // Handle nested structures
+                            while (\is_array($id) && isset($id['id'])) {
+                                $id = $id['id'];
+                            }
+                            
+                            $item = $id;
+                        } else {
+                            // No 'id' key, skip this entry
+                            continue;
+                        }
+                    }
+                    
+                    // Filter out empty values
+                    if ($item !== '' && $item !== null && $item !== []) {
+                        $normalized[] = $item;
+                    }
+                }
+                $event->setData(array_values($normalized));
             }
-        });
+        }, 100);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
