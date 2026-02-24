@@ -65,6 +65,11 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
             if (\is_array($data)) {
                 $normalized = [];
                 foreach ($data as $item) {
+                    // Handle nested arrays like [["en"], ["ru"]] -> ["en", "ru"]
+                    if (\is_array($item) && count($item) === 1 && isset($item[0]) && !is_array($item[0])) {
+                        $item = $item[0];
+                    }
+                    
                     // Handle {id, label} objects that may be submitted when chips are pre-rendered
                     if (\is_array($item)) {
                         if (isset($item['id'])) {
