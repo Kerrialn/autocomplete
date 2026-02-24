@@ -55,46 +55,9 @@ final class AutocompleteChoiceTypeExtension extends AbstractTypeExtension
             return;
         }
 
-        // Normalize submitted data: handle {id, label} objects from pre-filled chips
-        // and strip empty strings before the ChoicesToValuesTransformer runs its count check.
-        // Empty hidden inputs (e.g. from chips with no value) would otherwise cause a count
-        // mismatch and trigger "Please select a valid X."
-        // CRITICAL: Use priority 100 to run BEFORE Symfony's ChoiceType validation
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, static function (FormEvent $event): void {
-            $data = $event->getData();
-            if (\is_array($data)) {
-                $normalized = [];
-                foreach ($data as $item) {
-                    // Handle nested arrays like [["en"], ["ru"]] -> ["en", "ru"]
-                    if (\is_array($item) && count($item) === 1 && isset($item[0]) && !is_array($item[0])) {
-                        $item = $item[0];
-                    }
-                    
-                    // Handle {id, label} objects that may be submitted when chips are pre-rendered
-                    if (\is_array($item)) {
-                        if (isset($item['id'])) {
-                            $id = $item['id'];
-                            
-                            // Handle nested structures
-                            while (\is_array($id) && isset($id['id'])) {
-                                $id = $id['id'];
-                            }
-                            
-                            $item = $id;
-                        } else {
-                            // No 'id' key, skip this entry
-                            continue;
-                        }
-                    }
-                    
-                    // Filter out empty values
-                    if ($item !== '' && $item !== null && $item !== []) {
-                        $normalized[] = $item;
-                    }
-                }
-                $event->setData(array_values($normalized));
-            }
-        }, 100);
+        // Add a data transformer to normalize submitted data BEFORE it reaches ChoiceType validation
+        // This runs earlier in the form processing pipeline than PRE_SUBMIT events
+        $builder->addModelTransformer(new \Kerrialnewham\Autocomplete\Form\DataTransformer\ArrayNormalizerTransformer(), true);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
