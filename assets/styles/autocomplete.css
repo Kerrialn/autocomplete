@@ -748,24 +748,14 @@
     padding: 0.625rem 1rem;
 }
 
-/* Fix floating label with chips - position chips outside the input area */
+/* Fix floating label with chips - chips stay in normal flow above input */
 .form-floating:has([data-autocomplete-floating]) {
     position: relative;
 }
 
-/* When floating label is active, position chips absolutely ABOVE the form-floating container */
-.form-floating:has([data-autocomplete-floating]) [data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"] {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
+/* Chips container stays in normal flow with bottom margin */
+.form-floating [data-autocomplete-floating] [data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"] {
     margin-bottom: 0.5rem;
-    z-index: 1;
-}
-
-/* Add top margin to the form-floating container when chips are present */
-.form-floating:has([data-autocomplete-floating].has-chips) {
-    margin-top: 3rem;
 }
 
 /* Ensure input maintains proper height */
@@ -783,4 +773,19 @@
 .form-floating [data-autocomplete-floating].has-chips .form-control {
     padding-top: 1.625rem;
     padding-bottom: .625rem;
+}
+
+/* Position label relative to the input wrapper, not the chips */
+.form-floating:has([data-autocomplete-floating]) > label {
+    /* Calculate offset based on chips container height */
+    position: absolute;
+    pointer-events: none;
+}
+
+/* When chips are present, offset the label down to align with input */
+.form-floating:has([data-autocomplete-floating].has-chips) > label {
+    /* Label should be positioned relative to where the input starts, not the top of form-floating */
+    top: auto;
+    bottom: 0;
+    height: calc(3.5rem + calc(var(--bs-border-width) * 2));
 }
