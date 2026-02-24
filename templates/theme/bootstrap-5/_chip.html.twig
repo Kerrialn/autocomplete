@@ -11,10 +11,10 @@
     'xl': 'badge-xl'
 } %}
 {% set button_sizes = {
-    'sm': {'width': '16px', 'height': '16px', 'font': '12px'},
-    'md': {'width': '20px', 'height': '20px', 'font': '16px'},
-    'lg': {'width': '24px', 'height': '24px', 'font': '20px'},
-    'xl': {'width': '28px', 'height': '28px', 'font': '24px'}
+    'sm': {'width': '16px', 'height': '16px', 'font': '16px'},
+    'md': {'width': '20px', 'height': '20px', 'font': '20px'},
+    'lg': {'width': '24px', 'height': '24px', 'font': '24px'},
+    'xl': {'width': '28px', 'height': '28px', 'font': '28px'}
 } %}
 
 {% set raw_label = item.label|default('') %}
@@ -40,11 +40,11 @@
 
     <button type="button"
             class="btn btn-sm border-0 rounded-circle p-0 d-flex align-items-center justify-content-center"
-            style="width: {{ button_sizes[chip_size].width }}; height: {{ button_sizes[chip_size].height }}; margin-left: 4px; background-color: rgba(0, 0, 0, 0.1);"
+            style="width: {{ button_sizes[chip_size].width }}; height: {{ button_sizes[chip_size].height }}; margin-left: 4px; background-color: transparent;"
             aria-label="Remove {{ label_text }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip"
-            onmouseover="this.style.backgroundColor='rgba(0, 0, 0, 0.2)'"
-            onmouseout="this.style.backgroundColor='rgba(0, 0, 0, 0.1)'">
+            onmouseover="this.style.backgroundColor='rgba(0, 0, 0, 0.15)'"
+            onmouseout="this.style.backgroundColor='transparent'">
         <i class="bi bi-x" style="font-size: {{ button_sizes[chip_size].font }}; line-height: 1; color: #000;"></i>
     </button>
 
