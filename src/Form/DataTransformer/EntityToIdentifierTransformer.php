@@ -67,25 +67,84 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
      */
     public function reverseTransform(mixed $value): mixed
     {
+        // Debug logging to track incoming data format
+        if ($_ENV['APP_DEBUG'] ?? false) {
+            trigger_error(
+                sprintf(
+                    '[EntityToIdentifierTransformer] reverseTransform called for class "%s", multiple=%s, value type=%s, value=%s',
+                    $this->class,
+                    $this->multiple ? 'true' : 'false',
+                    get_debug_type($value),
+                    json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+                ),
+                E_USER_NOTICE
+            );
+        }
+
         if ($this->multiple) {
             if ($value === null || $value === '' || $value === []) {
                 return [];
             }
 
             $ids = is_array($value) ? $value : [$value];
-            $entities = [];
-
+            
+            // Normalize submitted data format: handle {id, label} objects that may be
+            // submitted when chips are pre-rendered and the form is resubmitted
+            $normalizedIds = [];
             foreach ($ids as $id) {
-                // Handle the case where submitted data contains {id, label} arrays
-                // instead of plain ID strings (can happen on form re-submission)
+                // Handle nested array structures and extract scalar IDs
                 if (\is_array($id)) {
-                    $id = $id['id'] ?? null;
+                    // Extract 'id' field from {id, label} objects
+                    if (isset($id['id'])) {
+                        $extractedId = $id['id'];
+                        
+                        // Handle case where id['id'] itself is an array (nested structure)
+                        while (\is_array($extractedId) && isset($extractedId['id'])) {
+                            $extractedId = $extractedId['id'];
+                        }
+                        
+                        $id = $extractedId;
+                    } else {
+                        // If no 'id' key, skip this entry
+                        continue;
+                    }
                 }
-
-                if ($id === null || $id === '') {
+                
+                // Filter out empty values early to prevent validation count mismatches
+                if ($id === null || $id === '' || $id === []) {
                     continue;
                 }
-
+                
+                // Ensure we have a scalar value
+                if (\is_array($id)) {
+                    trigger_error(
+                        sprintf(
+                            '[EntityToIdentifierTransformer] Skipping non-scalar ID after normalization for class "%s": %s',
+                            $this->class,
+                            json_encode($id, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+                        ),
+                        E_USER_WARNING
+                    );
+                    continue;
+                }
+                
+                $normalizedIds[] = $id;
+            }
+            
+            // Debug logging for normalized IDs
+            if ($_ENV['APP_DEBUG'] ?? false) {
+                trigger_error(
+                    sprintf(
+                        '[EntityToIdentifierTransformer] Normalized IDs for class "%s": %s',
+                        $this->class,
+                        json_encode($normalizedIds, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+                    ),
+                    E_USER_NOTICE
+                );
+            }
+            
+            $entities = [];
+            foreach ($normalizedIds as $id) {
                 try {
                     $entity = $this->findEntity($id);
                     if ($entity !== null) {
@@ -104,12 +163,41 @@ class EntityToIdentifierTransformer implements DataTransformerInterface
                 }
             }
 
+            // Debug logging for final result
+            if ($_ENV['APP_DEBUG'] ?? false) {
+                trigger_error(
+                    sprintf(
+                        '[EntityToIdentifierTransformer] reverseTransform result for class "%s": %d entities loaded from %d IDs',
+                        $this->class,
+                        count($entities),
+                        count($normalizedIds)
+                    ),
+                    E_USER_NOTICE
+                );
+            }
+
             return $entities;
         }
 
         // Single mode
         if ($value === null || $value === '') {
             return null;
+        }
+        
+        // Handle {id, label} object in single mode
+        if (\is_array($value)) {
+            if (isset($value['id'])) {
+                $value = $value['id'];
+                
+                // Handle nested structure
+                while (\is_array($value) && isset($value['id'])) {
+                    $value = $value['id'];
+                }
+            } else {
+                throw new TransformationFailedException(
+                    sprintf('Invalid array value for single-select EntityType "%s": %s', $this->class, json_encode($value))
+                );
+            }
         }
 
         $entity = $this->findEntity($value);

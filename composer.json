@@ -10,7 +10,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "App\\": "test-app/src/"
+      "App\\": "test-app/src/",
+      "Kerrialnewham\\Autocomplete\\Tests\\": "tests/"
     }
   },
   "authors": [
@@ -30,7 +31,8 @@
   },
   "require-dev": {
     "doctrine/orm": "^3.0",
-    "doctrine/doctrine-bundle": "^2.11"
+    "doctrine/doctrine-bundle": "^2.11",
+    "phpunit/phpunit": "^13.0"
   },
   "suggest": {
     "doctrine/orm": "Required for entity autocomplete and automatic entity provider generation",
