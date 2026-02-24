@@ -24,12 +24,13 @@
       data-autocomplete-chip-value="{{ item.id }}">
     <span>{{ label_text }}</span>
 
-    <a type="button"
-            class="btn btn-light rounded-pill py-0 px-1"
+    <button type="button"
+            class="btn btn-sm btn-primary border-0 rounded-circle p-0 d-flex align-items-center justify-content-center"
+            style="width: 20px; height: 20px; margin-left: 4px;"
             aria-label="Remove {{ label_text }}"
             data-action="click->kerrialnewham--autocomplete--ssr-autocomplete#removeChip">
-        <i class="bi bi-x"></i>
-    </a>
+        <i class="bi bi-x" style="font-size: 16px; line-height: 1;"></i>
+    </button>
 
     <input type="hidden"
            name="{{ name }}{{ name ends with '[]' ? '' : '[]' }}"

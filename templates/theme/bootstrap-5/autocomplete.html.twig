@@ -76,22 +76,22 @@
      data-kerrialnewham--autocomplete--ssr-autocomplete-name-value="{{ name ends with '[]' ? name|slice(0, -2) : name }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
 
-    {% if multiple %}
-        <div class="d-flex flex-wrap gap-1"
-             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
-            {% if selected_items is defined and selected_items is not empty %}
-                {% for item in selected_items %}
-                    {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
-                        item: item,
-                        name: name,
-                        translation_domain: td
-                    } %}
-                {% endfor %}
-            {% endif %}
-        </div>
-    {% endif %}
-
     <div class="position-relative">
+        {% if multiple %}
+            <div class="d-flex flex-wrap gap-1 mb-2"
+                 data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
+                {% if selected_items is defined and selected_items is not empty %}
+                    {% for item in selected_items %}
+                        {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
+                            item: item,
+                            name: name,
+                            translation_domain: td
+                        } %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endif %}
+
         <input type="text"
                class="{{ input_class }}"
                placeholder="{{ placeholder_text }}"
