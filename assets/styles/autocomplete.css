@@ -747,3 +747,30 @@
     font-size: 1.125rem;
     padding: 0.625rem 1rem;
 }
+
+/* Fix floating label with chips - position chips outside the input area */
+.form-floating:has([data-autocomplete-floating]) {
+    position: relative;
+}
+
+/* Position chips container below the form-floating wrapper */
+.form-floating [data-autocomplete-floating] [data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer"] {
+    margin-top: 0.5rem;
+}
+
+/* Ensure input maintains proper height when chips are present */
+.form-floating [data-autocomplete-floating].has-chips .form-control {
+    height: calc(3.5rem + calc(var(--bs-border-width) * 2));
+}
+
+/* Float label when chips are present (treat as having content) */
+.form-floating:has([data-autocomplete-floating].has-chips) > label {
+    color: rgba(var(--bs-body-color-rgb), .65);
+    transform: scale(.85) translateY(-.5rem) translateX(.15rem);
+}
+
+/* Ensure chips don't overlap with input */
+.form-floating [data-autocomplete-floating].has-chips .form-control {
+    padding-top: 1.625rem;
+    padding-bottom: .625rem;
+}

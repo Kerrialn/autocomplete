@@ -62,8 +62,9 @@
 
 {% set is_floating = floating_label is defined and floating_label %}
 {% set chip_size = chip_size|default('md') %}
+{% set has_chips = multiple and selected_items is defined and selected_items is not empty %}
 
-<div class="position-relative"
+<div class="position-relative {{ has_chips and is_floating ? 'has-chips' : '' }}"
      data-autocomplete-theme="{{ theme_name }}"
      {% if is_floating %}data-autocomplete-floating{% endif %}
      data-controller="kerrialnewham--autocomplete--ssr-autocomplete"
@@ -77,26 +78,10 @@
      data-kerrialnewham--autocomplete--ssr-autocomplete-name-value="{{ name ends with '[]' ? name|slice(0, -2) : name }}"
      data-kerrialnewham--autocomplete--ssr-autocomplete-target="wrapper">
 
-    {% if multiple %}
-        <div class="d-flex flex-wrap gap-1 mb-2"
-             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
-            {% if selected_items is defined and selected_items is not empty %}
-                {% for item in selected_items %}
-                    {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
-                        item: item,
-                        name: name,
-                        translation_domain: td,
-                        chip_size: chip_size
-                    } %}
-                {% endfor %}
-            {% endif %}
-        </div>
-    {% endif %}
-
     <div class="position-relative">
         <input type="text"
                class="{{ input_class }}"
-               placeholder="{{ placeholder_text }}"
+               placeholder="{{ is_floating ? ' ' : placeholder_text }}"
                {% if not multiple and selected_label is defined and selected_label %}value="{{ selected_label }}"{% endif %}
                autocomplete="off"
                data-kerrialnewham--autocomplete--ssr-autocomplete-target="input"
@@ -122,6 +107,22 @@
             </div>
         </div>
     </div>
+
+    {% if multiple %}
+        <div class="d-flex flex-wrap gap-1 mt-2"
+             data-kerrialnewham--autocomplete--ssr-autocomplete-target="chipsContainer">
+            {% if selected_items is defined and selected_items is not empty %}
+                {% for item in selected_items %}
+                    {% include '@Autocomplete/theme/bootstrap-5/_chip.html.twig' with {
+                        item: item,
+                        name: name,
+                        translation_domain: td,
+                        chip_size: chip_size
+                    } %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
 
     {% if not multiple %}
         <input type="hidden"
