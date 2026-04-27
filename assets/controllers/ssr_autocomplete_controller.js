@@ -382,13 +382,19 @@ export default class extends Controller {
 
         this.element.classList.toggle('has-chips', hasChips);
 
+        // --chips-height must be set on the .form-floating ancestor so that the
+        // sibling <label> element can read it (CSS vars only cascade downward).
+        const formFloating = this.element.closest('.form-floating');
+        if (!formFloating) return;
+
         if (hasChips) {
-            const container = this.chipsContainerTarget;
-            const height = container.getBoundingClientRect().height;
-            const marginBottom = parseFloat(window.getComputedStyle(container).marginBottom) || 0;
-            this.element.style.setProperty('--chips-height', `${height + marginBottom}px`);
+            // offsetTop of the input wrapper tells us exactly where the input
+            // starts relative to the autocomplete wrapper's top edge.
+            const inputWrapper = this.inputTarget.parentElement;
+            const offset = inputWrapper ? inputWrapper.offsetTop : 0;
+            formFloating.style.setProperty('--chips-height', `${offset}px`);
         } else {
-            this.element.style.removeProperty('--chips-height');
+            formFloating.style.removeProperty('--chips-height');
         }
     }
 
