@@ -31,6 +31,9 @@ export default class extends Controller {
         this.abortController = null;
         this.isSelectingOption = false;
 
+        // Sync floating label position for server-rendered chips on initial load
+        this.updateFloatingLabel();
+
         // Initialize with existing chips (supports server-rendered chips if they embed meta)
         if (this.hasChipsContainerTarget) {
             this.chipTargets.forEach(chip => {
@@ -277,6 +280,7 @@ export default class extends Controller {
             }
 
             this.chipsContainerTarget.appendChild(chipEl);
+            this.updateFloatingLabel();
 
             // Dispatch change event on the new hidden input so frameworks
             // (e.g. Symfony Live Components) detect the added value
@@ -364,9 +368,28 @@ export default class extends Controller {
                 hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
             chip.remove();
+            this.updateFloatingLabel();
         }
 
         this.dispatch('remove', { detail: { value } });
+    }
+
+    updateFloatingLabel() {
+        if (!this.element.hasAttribute('data-autocomplete-floating')) return;
+
+        const hasChips = this.hasChipsContainerTarget &&
+                         this.chipsContainerTarget.children.length > 0;
+
+        this.element.classList.toggle('has-chips', hasChips);
+
+        if (hasChips) {
+            const container = this.chipsContainerTarget;
+            const height = container.getBoundingClientRect().height;
+            const marginBottom = parseFloat(window.getComputedStyle(container).marginBottom) || 0;
+            this.element.style.setProperty('--chips-height', `${height + marginBottom}px`);
+        } else {
+            this.element.style.removeProperty('--chips-height');
+        }
     }
 
     setSingleValue(item) {

@@ -758,11 +758,6 @@
     margin-bottom: 0.5rem;
 }
 
-/* Ensure input maintains proper height */
-.form-floating [data-autocomplete-floating] .form-control {
-    height: calc(3.5rem + calc(var(--bs-border-width) * 2));
-}
-
 /* Float label when chips are present (treat as having content) */
 .form-floating:has([data-autocomplete-floating].has-chips) > label {
     color: rgba(var(--bs-body-color-rgb), .65);
@@ -775,17 +770,12 @@
     padding-bottom: .625rem;
 }
 
-/* Position label relative to the input wrapper, not the chips */
+/* Pin the label over the input area only, not the chips above it.
+   JS sets --chips-height on the wrapper whenever chips are added/removed,
+   so the label always tracks the top edge of the actual input. */
 .form-floating:has([data-autocomplete-floating]) > label {
-    /* Calculate offset based on chips container height */
     position: absolute;
     pointer-events: none;
-}
-
-/* When chips are present, offset the label down to align with input */
-.form-floating:has([data-autocomplete-floating].has-chips) > label {
-    /* Label should be positioned relative to where the input starts, not the top of form-floating */
-    top: auto;
-    bottom: 0;
-    height: calc(3.5rem + calc(var(--bs-border-width) * 2));
+    top: var(--chips-height, 0px);
+    height: calc(3.5rem + calc(var(--bs-border-width, 1px) * 2));
 }
